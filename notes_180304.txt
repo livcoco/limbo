@@ -1,0 +1,16 @@
+4/4/18 Notes - Stuart Nelson, James Waldby
+NixNote2 looks like a good start.  I has a lot of what we want.  Unfortunately it is written in C++, which will make it hard
+to integrate with Kodi and harder to work on.  The user interface looks like it has most of what we need. Looked for a python
+version, but didn't find one.  There is a python sdk for talking to evernote, but no app.
+
+System Use Case:  
+  When a note is created related to some media, picture, movie, etc. auto tags are assigned and user defined tags
+  The media referenced by the note can then be displayed based on the tags of the note.
+  This allows making notes about all your pictures, then sorting the pictures based on the tags of the notes
+
+Python based note apps in github:
+  A simple note taking web app
+  Tnote
+  SublimeNotebook
+  
+Also Xnote plugin exists for Kodi, but does not seem to be functional

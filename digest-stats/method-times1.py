@@ -4,7 +4,7 @@
 
 # Note: To convert this program's python-2-style print
 # statements to python-3-style, you can use the command
-#         2to3 -w method-times1.py
+#         2to3 -n -w method-times1.py
 
 # Optional parameters:
 
@@ -50,6 +50,15 @@ te = time.time()-t0
 nfiles = len(flist)
 print 'len flist = {} at {:8.6f} elapsed seconds'.format(nfiles, te)
 
+class dummyd:
+    """Create a dummy digest result for 'empty-loop' timing"""
+    def __init__ (self, buf=[]):  pass
+    def digest   (self):          return '7'
+    def hexdigest(self):          return '37'
+    def func     (self):          return self
+    name = 'dummyd'
+    digest_size = 1
+    __call__ = func
 
 def runtest(method):
     d = method()
@@ -64,9 +73,9 @@ def runtest(method):
 
 print 'Pass -1 to pre-access files',
 stdout.flush()
-rtime, dbits, dname = runtest(md5)
+rtime, dbytes, dname = runtest(md5)
 print 'took {:8.6f} seconds'.format(rtime)
-methodList = [md5, sha1, sha224, sha256, sha384, sha512]
+methodList = [dummyd, md5, sha1, sha224, sha256, sha384, sha512]
 ttimes = [0]*len(methodList)
 
 for passnum in range(passes):
@@ -75,9 +84,9 @@ for passnum in range(passes):
     if passnum<1:
         print
     for methNum, meth in enumerate(methodList):
-        rtime, dbits, dname = runtest(meth)
+        rtime, dbytes, dname = runtest(meth)
         if passnum<1:
-            print '{:2}.  {:3}-bit {:9} test: {:11.6f} seconds, {:11.9f} per file'.format(methNum, dbits, dname, rtime, rtime/nfiles)
+            print '{:2}.  {:3}-byte {:9} test: {:11.6f} seconds, {:11.9f} per file'.format(methNum, dbytes, dname, rtime, rtime/nfiles)
         else:
             print dname,
             stdout.flush()
@@ -90,5 +99,5 @@ print '\nTotal times and averages per file for each method, on {} files:'.format
 for methNum, meth in enumerate(methodList):
     et = ttimes[methNum]
     d = meth()
-    print '{:2}.  {:3}-bit {:9} test: {:11.6f} seconds, {:11.9f} per file'.format(methNum, d.digest_size, d.name, et, et/tfiles)
+    print '{:2}.  {:3}-byte {:9} test: {:11.6f} seconds, {:11.9f} per file'.format(methNum, d.digest_size, d.name, et, et/tfiles)
 print; print

@@ -36,9 +36,9 @@ list.  Note, shifted number keys -- like !, @, #, $, ^, &, * -- seem
 to be unassigned.  If you use an already-assigned key, its default
 usage will be overridden.
 
-8. After assigned desired shortcut keys, press Esc three times to back
-out to the top screen of Keymap Editor, which has Edit, Reset, and
-Save choices.  Click Save.
+8. After assigning desired shortcut keys, press Esc three times to
+back out to the top screen of Keymap Editor, which has Edit, Reset,
+and Save choices.  Click Save.
 
 Now the assigned desired shortcut keys are available for use in their
 assigned environments.  For example, if you assign '@', or shift-2, to

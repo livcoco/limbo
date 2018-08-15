@@ -1,0 +1,43 @@
+This document tells how to set up a shortcut key to take bookmarks on
+the fly while watching a video.  The method described here uses kodi
+addon 'Keymap Editor' to create the shortcut key.  Installation and
+basic use of 'Keymap Editor' is described in (eg) a youtube video at
+<https://youtu.be/P6ibagPBSFI> (subsumed here in first few steps).
+
+1. Install addon 'Keymap Editor': In kodi, bring up a list of Program Addons in the kodi repository.  (Eg, in the confluence skin, click Programs; move the mouse cursor to the right arrow at the left edge of the screen; click 'Get more...' under 'Actions'.)
+
+2. Scroll down to 'Keymap Editor', or press shift-K to jump down to
+it.  Click 'Keymap Editor' and then 'Install'.  Exit from the addons
+dialog.
+
+3. Start Keymap Editor by clicking Programs and the Keymap Editor
+icon.  Click 'Edit'.
+
+4. If you want the shortcut key to be available in all kodi contexts,
+click 'Global' on the 'Select Window to manage shortcuts' screen.
+Otherwise, select specific contexts like 'Videos', 'Fullscreen Video',
+etc.
+
+5. On the 'Select action category' screen, click 'Playback'.
+
+6. On the 'Select the action to assign a key' screen, press the End
+key to get to end of list.  Then click 'Create Bookmark'.  A Keymap
+Editor box with two choices will appear: 'Edit key' and 'Remove'.
+
+7. Decide what key you want to use for the shortcut, and be prepared
+to press that key.  When ready, click the 'Edit key' choice, and then
+within five seconds, press an available key that you want to have
+assigned to the shortcut.  Many keys are already assigned to various
+shortcuts; see eg <https://kodi.wiki/view/Keyboard_controls> for a
+list.  Note, shifted number keys -- like !, @, #, $, ^, &, * -- seem
+to be unassigned.  If you use an already-assigned key, its default
+usage will be overridden.
+
+8. After assigned desired shortcut keys, press Esc three times to back
+out to the top screen of Keymap Editor, which has Edit, Reset, and
+Save choices.  Click Save.
+
+Now the assigned desired shortcut keys are available for use in their
+assigned environments.  For example, if you assign '@', or shift-2, to
+the 'Create Bookmark' function, then a bookmark will be taken
+(silently) each time you press the '@' key during video playback.

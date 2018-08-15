@@ -4,7 +4,10 @@ addon 'Keymap Editor' to create the shortcut key.  Installation and
 basic use of 'Keymap Editor' is described in (eg) a youtube video at
 <https://youtu.be/P6ibagPBSFI> (subsumed here in first few steps).
 
-1. Install addon 'Keymap Editor': In kodi, bring up a list of Program Addons in the kodi repository.  (Eg, in the confluence skin, click Programs; move the mouse cursor to the right arrow at the left edge of the screen; click 'Get more...' under 'Actions'.)
+1. Install addon 'Keymap Editor': In kodi, bring up a list of Program
+Addons in the kodi repository.  (Eg, in the confluence skin, click
+Programs; move the mouse cursor to the right arrow at the left edge of
+the screen; click 'Get more...' under 'Actions'.)
 
 2. Scroll down to 'Keymap Editor', or press shift-K to jump down to
 it.  Click 'Keymap Editor' and then 'Install'.  Exit from the addons

@@ -1,0 +1,12 @@
+=P
+  pDiam=0.17  qDiam=0.2  dRatio=1.1  endGap=0 postHi=.4
+  postLabel=Rtc
+
+=L
+B-1,0,0; P5,1,36;
+B+1,0,0; P5,1,0;
+
+=C
+Gpae 0,1;;;;0;
+BPea 0,1;;;;0;
+Raaq9,5;rb6;sYc;td;ue;vCe5;w6;

@@ -1,0 +1,25 @@
+eg-pentagon-script --
+
+An example with a set of pentagons for the
+grid of points, and some connecting-up cylinders.  The C 0,0,0;
+entry makes a center post.  The P5 entries make three regular
+pentagons, of radii 1, 1.6, and 2, with the middle pentagon rotated
+36 degrees to place its vertices on lines midway between vertices
+of the other pentagons.  Thus, a total of 16 points.
+
+In an = line, only the first two characters (=L or =C) matter.
+
+=Layout
+C 0,0,0;
+P5,1,0;
+P5,1.6,36;
+P5,2,0;
+
+=Cylinders
+qG cc 0 1; 0 2; 0 3; 0 4; 0 5;
+pC ae 1 2; 3; 4; 5; 1;
+      6 7; 8; 9; 10; 6;
+      11 12; 13; 14; 15; 11;
+ M ea 1 2; 3; 4; 5; 1;
+      6 7; 8; 9; 10; 6;
+      11 12; 13; 14; 15; 11;

@@ -1,0 +1,58 @@
+An example file to demonstrate automatically making edges (cylinders)
+between posts that are within specified cutoff distance of each
+other. -- jiw 15 Feb 2020
+
+In this example, no edges are specified in the =C section, so Lmax
+(the maximum length over all edges specified) is 0 and the cutoff
+value is just autoTol.  If you specify autoTol=125 (here or on the
+command line) instead of 126 you will see some edges disappear in the
+outer ring of triangles, where some of the lengths are 125.14.
+
+The next several ranks of post separations in this example are 148.66,
+155.10, 159.01, and 159.89 units apart.  For this example, autoTol
+values just below or above those values give different numbers of
+edges generated.  For example, autoTol=159 makes 215 edges and
+autoTol=159.1 makes 225, both in obviously invalid triangulations.
+
+=P  
+  autoList=t
+  autoTol=126  
+=  autoList controls whether automatically-generated edges get listed,
+=  and autoTol is how much extra length to allow generated edges to
+=  have, above the length of the longest specified edge, Lmax.
+=  (If autoTol is negative, generated edge lengths will have to be
+=  at least that much shorter than Lmax.)
+  
+  postHi=0.08 pDiam=0.04 endGap=0
+  postList=f
+  cylList=f
+=L
+B 0 0 .7;  C 0,0,0;
+= row 1,            posts 1 - 5
+B 0 0 .5;  P5,1,0;
+= row 2,            posts 6 - 10 & 11 - 15
+B 0 0 .2;  P5,1.8,36;
+B 0 0  0;  P5,2,0;
+= row 3,          posts 16-20, 21-25, 26-30
+B 0 0 -0.3; P5,2.6,24;
+B 0 0 -0.3; P5,2.6,-24;
+B 0 0 -0.5; P5,2.8,0;
+= row 4,          posts 31-35, 36-40, 41-45, 46-50
+B 0 0 -0.7; P5,3.2,18;
+B 0 0 -0.7; P5,3.2,-18;
+B 0 0 -0.6; P5,3.3,36;
+B 0 0 -0.9; P5,3.4,0;
+
+= row 5,          posts 51-55, 56-60, 61-65, 66-70, 71-75
+B 0 0 -1; P5,4.2,-28.8;
+B 0 0 -1; P5,4.2,-14.4;
+B 0 0 -1; P5,4.2,0;
+B 0 0 -1; P5,4.2,+14.4;
+B 0 0 -1; P5,4.2,+28.8;
+
+= 1 more rows to go to complete division of top 5 pentagons, each row more pentagonal points
+= row 6
+= from here need to create the 10 half pentagons to complete the hemisphere
+
+=C
+= all the edges are automatic in this example

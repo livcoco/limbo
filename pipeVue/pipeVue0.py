@@ -182,7 +182,6 @@ def postTop(p, OP):   # Given post location p, return loc. of post top
         tx, ty, tz = a*x+b*ox, a*y+b*oy, a*z+b*oz
     else:
         tx, ty, tz = x, y, z+u  # Fallback if p ~ OP
-    if abs(tz-z)>abs(u): print(f'tz {tz}  z {z}  u {u}')
     siny = min(1, max(-1, (tz-z)/u)) # Don't let rounding error shut us down
     yAxisAngle = (pi/2 - asin(siny)) * 180/pi
     zAxisAngle =  atan2(ty-y, tx-x)  * 180/pi

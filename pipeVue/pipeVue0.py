@@ -69,7 +69,7 @@ Point  = namedtuple('Point',  'x,y,z')
 #  posts.  cSpec is a script for cylinders between points on posts.
 #  Re script contents, see `spec-layout-script.odt`.
 Design = namedtuple('Design', 'pLayout, cSpec')
-Layout = namedtuple('Layout', 'BP, posts')
+Layout = namedtuple('Layout', 'BP, OP, posts')
 
 def rotate2(a,b,theta):
     st = sin(theta)
@@ -78,9 +78,11 @@ def rotate2(a,b,theta):
 
 def ssq(x,y,z):    return x*x + y*y + z*z
 def sssq(x,y,z):   return sqrt(ssq(x,y,z))
+def dist(p,q):     return sqrt(ssq(p.x-q.x, p.y-q.y, p.z-q.z))
 
 def produceOut(code, numText, LO):
-    BP, posts = LO.BP, LO.posts
+    '''Modify layout LO according to code and numbers; return new layout.'''
+    BP, OP, posts = LO.BP, LO.OP, LO.posts
     bx, by, bz = BP.x, BP.y, BP.z
     nn = len(numText)
     def getNums(j, k):
@@ -97,7 +99,11 @@ def produceOut(code, numText, LO):
     
     if code=='B':               # Set base point, BP
         nums = getNums(3,3)     # Need exactly 3 numbers
-        if nums: return Layout(Point(*nums), posts)
+        if nums: return Layout(Point(*nums), OP, posts)
+
+    if code=='O':               # Set origin point, OP
+        nums = getNums(3,3)     # Need exactly 3 numbers
+        if nums: return Layout(BP, Point(*nums), posts)
 
     if code=='C':               # Create a collection of posts
         nums = getNums(3,33333) # Need at least 3 numbers
@@ -108,7 +114,7 @@ def produceOut(code, numText, LO):
                 nums = nums[3:]
             if len(nums)>0:
                 print (f'Anomaly: code {code}, {numText} has {nums} left over')
-            return Layout(BP, posts)
+            return Layout(BP, OP, posts)
 
     if code=='L':               # Create a line of posts
         nums = getNums(4,4)     # Need exactly 4 numbers
@@ -118,7 +124,7 @@ def produceOut(code, numText, LO):
             for k in range(n):
                 x, y, z = x+dx, y+dy, z+dz
                 posts.append(Point(x,y,z))
-            return Layout(BP, posts)
+            return Layout(BP, OP, posts)
 
     if code=='P':               # Create a polygon of posts        
         nums = getNums(3,3)     # Need exactly 3 numbers
@@ -129,6 +135,7 @@ def produceOut(code, numText, LO):
             for post in range(n):
                 posts.append(Point(bx+x, by+y, bz))
                 x, y = rotate2(x, y,theta)
+            return Layout(BP, OP, posts)
     
     if code in 'RT':            # Create an array of posts
         nums = getNums(4,4)     # Need exactly 4 numbers
@@ -144,7 +151,7 @@ def produceOut(code, numText, LO):
                     posts.append(Point(x,y,z))
                     x += dx
                 y += dy
-            return Layout(BP, posts)
+            return Layout(BP, OP, posts)
     return LO                   # No change if we fail or fall thru
 
 def isTrue(x):
@@ -152,9 +159,11 @@ def isTrue(x):
     string beginning with f, F, N, or n.  Else, return True.    '''
     return not str(x)[:1] in 'fFNn'
 
-def levelLet(lev):
-    deltaHi = SF*postHi/(len(levels)-1)
-    return (ord(lev)-ord(levels[0]))*deltaHi
+# Compute coords of a letter-point on post based at pb, with top at pt
+def levelAt(lev, pb, pt):
+    a = (ord(lev)-ord(levels[0]))/(len(levels)-1) # Get portion-of-post
+    b = 1-a                                       # Get unused portion
+    return b*pb.x+a*pt.x, b*pb.y+a*pt.y, b*pb.z+a*pt.z
 
 def thickLet(thix):
     if thix=='p':
@@ -162,13 +171,30 @@ def thickLet(thix):
     else: # diameters q, r, s, t... scale geometrically
         expo = max(0, ord(thix)-ord('q'))
         return SF * qDiam * pow(dRatio,expo)
-        
-def doLayout(dz):
-    LO = Layout(Point(0,0,0), [])
+
+def postTop(p, OP):   # Given post location p, return loc. of post top
+    x, y, z = p.x, p.y, p.z
+    ox, oy, oz = (x, y, z-99) if postAxial else (OP.x, OP.y, OP.z)
+    u = SF*postHi               # Distance from p to post-top
+    v = sssq(x-ox, y-oy, z-oz)  # Distance from p to origin point
+    if v>0.01:
+        a, b = (u+v)/v, -u/v    # Extrapolation ratios a + b = 1
+        tx, ty, tz = a*x+b*ox, a*y+b*oy, a*z+b*oz
+    else:
+        tx, ty, tz = x, y, z+u  # Fallback if p ~ OP
+    if abs(tz-z)>abs(u): print(f'tz {tz}  z {z}  u {u}')
+    siny = min(1, max(-1, (tz-z)/u)) # Don't let rounding error shut us down
+    yAxisAngle = (pi/2 - asin(siny)) * 180/pi
+    zAxisAngle =  atan2(ty-y, tx-x)  * 180/pi
+    #print (f'OP is {ox} {oy} {oz},  xyz {x:0.1f} {y:0.1f} {z:0.1f}   txyz {tx:0.1f} {ty:0.1f} {tz:0.1f}')
+    return tx, ty, tz, yAxisAngle, zAxisAngle
+
+def doLayout(design):
+    LO = Layout(Point(0,0,0), Point(0,0,0), [])
     pc, code, numbers = '?', '?', []
-    codes, digits = 'BCLPRT', '01234356789+-.'
+    codes, digits = 'BCLOPRT', '01234356789+-.'
     
-    for cc in dz.pLayout:       # Process current character
+    for cc in design.pLayout:   # Process current character
         # Add character to number, or store a number?
         if cc in digits:
             num = num + cc if pc in digits else cc
@@ -181,9 +207,13 @@ def doLayout(dz):
         elif cc in codes:
             pc, code, numbers = '?', cc, []
         pc = cc                 # Prep to get next character
-        
-    # Now LO has an unscaled points list.  Create and return CSG
-    posts = LO.posts
+
+    posts = LO.posts            # LO has the unscaled points list
+    OP = LO.OP
+    OP = Point(SF*OP.x, SF*OP.y, SF*OP.z)
+    LO = Layout(LO.BP, OP, posts)
+    # ----------------------
+    # Scale the set of posts 
     for k in range(len(posts)):
         p = posts[k]
         p = Point(SF*p.x, SF*p.y, SF*p.z)
@@ -191,39 +221,50 @@ def doLayout(dz):
         if isTrue(postList):
             #print (f'Post {k:<3} ({p.x:8.2f}, {p.y:8.2f}, {p.z:8.2f} )')
             print (f'p{k:<2}=Point( {p.x:8.2f}, {p.y:8.2f}, {p.z:8.2f})')
-    assembly = None
+
+    # ----------------------
+    # Draw the set of posts
+    assembly = None;   pHi = SF*postHi
     for k, p in enumerate(posts):
+        tx, ty, tz, yAxisAngle, zAxisAngle = postTop(p, OP)
         tube = cylinder(d=SF*postDiam, h=SF*postHi)
-        cyli = translate([p.x, p.y, p.z])(tube)
+        tilt = rotate([0,yAxisAngle,zAxisAngle])(tube)
+        cyli = translate([p.x, p.y, p.z])(tilt)
         assembly = assembly + cyli if assembly else cyli
         if isTrue(postLabel):
+            # -------------------------
+            # Draw labels for the posts
+            top = Point (tx, ty, tz)
             cName = colorSet['B']
             thik  = thickLet('t')
-            zd    = levelLet('e')
+            x,y,z = levelAt('e', p, top)
             for cc in postLabel:
                 if cc in colors: cName = colorSet[cc]
                 if cc in thixx:  thik  = thickLet(cc)
-                if cc in levels: zd = levelLet(cc)
-            tx =  color(cName)(text(text=str(k),size=thik))
-            tr = translate([p.x-thik*(1+len(str(k))), p.y, zd+p.z])(tx)
-            assembly = assembly + tr
+                if cc in levels: x,y,z = levelAt(cc, p, top)
+            txt = color(cName)(text(text=str(k),size=thik))
+            txt = translate([x-thik*len(str(k)), y, z])(txt)
+            assembly = assembly + txt
 
-    return assembly, Layout(LO.BP, posts)
+    return assembly, Layout(LO.BP, LO.OP, posts)
 
-def doCylinders(dz, LO, assembly):
+def doCylinders(design, LO, assembly):
+    def topPoint(p):
+        tx, ty, tz, yAxisAngle, zAxisAngle = postTop(p, LO.OP)
+        return Point(tx, ty, tz)
+    
     def oneCyl(listIt):   # Return a cylinder & its end-post #'s
         m, n = int(post1)%nPosts, int(post2)%nPosts
         p, q = posts[m], posts[n]
-        za1 = levelLet(level1)
-        za2 = levelLet(level2)
-        pz, qz = za1 + p.z, za2 + q.z
-        # p, q are scaled, so dx,dy,dz & L are too.
-        dz, dx, dy = qz-pz, q.x-p.x,  q.y-p.y
+        pTop, qTop = topPoint(p), topPoint(q)
+        px, py, pz = levelAt(level1, p, pTop)
+        qx, qy, qz = levelAt(level2, q, qTop)
+        dx, dy, dz = qx-px, qy-py, qz-pz
         L = max(0.1, sssq(dx,  dy,  dz))
         cName = colorSet[colorr]
         alpha = SF*endGap/L     # endGap needs scaling
         # Inputs are scaled, so cx, cy, cz are too.
-        cx, cy, cz = p.x+alpha*dx, p.y+alpha*dy, pz+alpha*dz
+        cx, cy, cz = px+alpha*dx, py+alpha*dy, pz+alpha*dz
         if isTrue(listIt):
             print (f'Make  {cName:8} {thix} {m:2}{level1} {n:2}{level2}   Length {L:2.2f}')
         yAxisAngle = (pi/2 - asin(dz/L)) * 180/pi
@@ -233,7 +274,7 @@ def doCylinders(dz, LO, assembly):
         colo = color(cName)(tube)
         tilt = rotate([0,yAxisAngle,zAxisAngle])(colo)
         # Return a ready-to-use cylinder
-        return translate([cx,cy,cz])(tilt), m, n, L
+        return translate([cx,cy,cz])(tilt), m, n
 
     def addEdge(v,w):
         if v in edgeList:
@@ -243,7 +284,7 @@ def doCylinders(dz, LO, assembly):
             edgeList[v] = [w]
            
 
-    specs, posts = dz.cSpec, LO.posts
+    specs, posts = design.cSpec, LO.posts
     colorr='G'; thix='p'; pc = None
     post1, post2, level1, level2 = '0', '1', 'c','c'
     nPosts = len(posts)
@@ -263,19 +304,18 @@ def doCylinders(dz, LO, assembly):
         elif cc==';':
             if nonPost:
                 post1, post2 = str(1+int(post1)), str(1+int(post2))
-            cyli, p1, p2, L = oneCyl(cylList)
+            cyli, p1, p2 = oneCyl(cylList)
             assembly = assembly + cyli if assembly else cyli
-            Lmax = max(L, Lmax)
             addEdge(p1, p2)  # Add edge to edges list
             addEdge(p2, p1)
             nonPost = True
         pc = cc
     # Finished with specs; now see if we need to auto-add cylinders
-    cutoff = Lmax + autoTol
-    if cutoff > 0:   # See if no way for any more edges
-        print (f'In auto-add, cutoff distance is {cutoff:7.2f} = Lmax + autoTol = {Lmax:0.2f} + {autoTol}')
+    cutoff = autoMax
+    if cutoff > 0:   # See if any way for any more edges
+        print (f'In auto-add, cutoff distance autoMax is {cutoff:7.3f}')
         cutoff2 = cutoff*cutoff
-        print (edgeList)
+        #print (edgeList)
         for pn in range(nPosts):
             p = posts[pn]
             for qn in range(1+pn, nPosts):
@@ -289,7 +329,7 @@ def doCylinders(dz, LO, assembly):
                 if d2 > cutoff2: continue
                 if pn not in edgeList or qn not in edgeList[pn]:
                     post1, post2 = str(pn), str(qn)
-                    cyli, p1, p2, L = oneCyl(autoList)
+                    cyli, p1, p2 = oneCyl(autoList)
                     assembly = assembly + cyli if assembly else cyli
     return assembly
 
@@ -348,19 +388,20 @@ if __name__ == '__main__':
     version, paramTxt, postLabel= 0, '','Bte' # Blue, size u, level e
     scadFile = f'pipeVue{version}.scad' # Name of scad output file
     postList = cylList = False # Control printing of post and cyl data
-    autoTol, autoList = -1e9, False
+    autoMax, autoList = 0, True
+    postAxial = True
     for k in range(1,len(argv)):
         paramTxt = paramTxt + ' ' + argv[k]
     installParams(paramTxt)     # Set params from command line
     
     if f == '':
-        dz = Design('C 0,0,0; P5,1,0;', 'Gpae 1,2;;;;1;')
+        design = Design('C 0,0,0; P5,1,0;', 'Gpae 1,2;;;;1;')
     else:
-        dz = loadScriptFile(f)  # May install params from file.
+        design = loadScriptFile(f)  # May install params from file.
     installParams(paramTxt)     # Again, set params from command line.
 
-    assembly, LO = doLayout(dz)
-    assembly = doCylinders(dz, LO, assembly)
+    assembly, LO = doLayout(design)
+    assembly = doCylinders(design, LO, assembly)
     scad_render_to_file(assembly, scadFile,
                         file_header = f'$fn = {cylSegments};',
                         include_orig_code=False)

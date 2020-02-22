@@ -45,7 +45,6 @@ B 0 0 -0.3; P15,2.6,24;
 B 0 0 -0.7; P20,3.2,18;
 B 0 0 -1.6; P25,3.5,0;
 
-=C
 = all the visible edges are automatic in this example.
 = (The 0-0 edge is too short to see; it's here to set color and levels.)
 Bpbb 0 0;

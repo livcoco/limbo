@@ -17,28 +17,18 @@ visualization of arrangements of edges in geodesic dome structures.'''
 #  has entries with optional <color>, <diam>, <post>, and <level>
 #  elements.  Each semicolon terminator invokes cylinder production.
 
-# Optional params for __main__:
-#    designNum/name, endGap, postHi, pDiam, qDiam, SF
-
-# [parameter handling revision, 12 Feb: allow params in any order; but
-# require keyword=value forms -- eg `pDiam=0.07` -- where keyword
-# should exactly match the name of a variable in the program.]
-
-#  The command-line parameters default to designNum=0, endGap=.03,
-#  postHi=.24, pDiam=.06, qDiam=.02, and SF=100 respectively, which
-#  when scaled represent design number 0; 3-unit end gaps; 24-unit
-#  post heights; thick and thin diameters of 6 and 2 units; and
-#  100-unit scale factor.
-
-#  Note, if the first parameter is a valid integer k (or blank, ie
-#  k=0) pipeVue uses the k'th built-in script set for layout and
-#  cylinders.  Else, the first parameter should be the name of a file
-#  containing a layout script and a cylinders script.
+# Optional parameters for this program are described in a table in
+# file `spec-layout-script.odt`.  That documentation tells how to
+# specify parameter values endGap, postHi, pDiam, qDiam, SF, and
+# numerous others.  Parameter settings can appear on the command line
+# as well as in =P lines of a scripts file.  A table in the
+# documentation shows parameter names, parameter usage, and default
+# values.
 
 #  Note, an end gap is a small gap between a post and a cylinder end.
-#  With endGap=3, a gap of about 6 units is drawn between the ends of
-#  cylinders meeting at the same point.  With endGap=0, there'd be no
-#  gap.
+#  With endGap=3 default value, a gap of about 6 units is drawn
+#  between the ends of cylinders meeting at the same point.  With
+#  endGap=0, there'd be no gap.
 
 # When modifying this code:
 # (a) At outset (ie once only), at command prompt say:
@@ -47,45 +37,64 @@ visualization of arrangements of edges in geodesic dome structures.'''
 #           echo $PYF, $SCF, $STF;  openscad $SCF &
 #     [To avoid a 'Text file busy' shell error message, instead of
 #      just saying  ./$PYF  the commands above use python to run $PYF]
-# (b) After changes that you want to see the effect of, save the
-#     file.  The exec-on-change script will be informed of the file
-#     change and will run $PYF.  Then [if openscad `Design -> Automatic
-#     Reload and Preview` option is on] openscad will see that $SCF
-#     changed*, and re-render its image.
-# (c) In openscad, press F6 to render details, then Export, as STL.
-# (d) Say `craftware $STF &` then slice it and save gcode
+
+#     [Bash script exec-on-change runs a command upon changes.  See
+#      https://github.com/ghjwp7/plastics/blob/master/exec-on-change .
+#      Or just run the program manually as needed.  When you are
+#      working on a particular script S, you can replace the e-o-c
+#      shown above with:    exec-on-change S "./pipeVue0 f=S" &
+#      which will run pipeVue0 on S whenever you change the file S.]
+
+# (b) After program changes that you want to see the effect of, save
+#     the file.  The exec-on-change script will be informed of the
+#     file change and will run $PYF.  Then [if openscad's `Design ->
+#     Automatic Reload and Preview` option is on] openscad will see
+#     that $SCF changed*, and re-render its image.
 
 from solid import cylinder, translate, rotate, scad_render_to_file, color, text
 from solid.utils import down, up, left
 from sys import argv
 from math import sqrt, pi, cos, sin, asin, atan2
-from collections import namedtuple
 
-Point  = namedtuple('Point',  'x,y,z')
-#  Design elements cSides, nPosts, pLayout, cSpec are two integers and
-#  two strings. cSides is the number of central sides (allowing
-#  central area to be pentagonal, hexagonal, etc.).  nPosts is the
-#  total number of posts.  pLayout is a script for arrangement of
-#  posts.  cSpec is a script for cylinders between points on posts.
-#  Re script contents, see `spec-layout-script.odt`.
-Design = namedtuple('Design', 'pLayout, cSpec')
-Layout = namedtuple('Layout', 'BP, OP, posts')
+class Point:
+    def __init__(self, x=0, y=0, z=0):
+        self.x = x
+        self.y = y
+        self.z = z
+    def scale(self, s):
+        self.x = s*self.x
+        self.y = s*self.y
+        self.z = s*self.z
+    def scalexy(self, s):
+        self.x = s*self.x
+        self.y = s*self.y
+
+class Layout:
+    def __init__(self, BP=Point(0,0,0), OP=Point(0,0,0), posts=[], sRadi=0):
+        self.BP = BP  # Current basepoint value
+        self.OP = OP  # Origin point of net
+        self.posts = posts
+        self.sRadi = sRadi       # Radius of interior sphere, if any
+
+    def get3(self):
+        return  self.BP, self.OP, self.sRadi
+
+def ssq(x,y,z):    return x*x + y*y + z*z
+def sssq(x,y,z):   return sqrt(ssq(x,y,z))
+def dist(p,q):     return sqrt(ssq(p.x-q.x, p.y-q.y, p.z-q.z))
 
 def rotate2(a,b,theta):
     st = sin(theta)
     ct = cos(theta)
     return  a*ct-b*st, a*st+b*ct
 
-def ssq(x,y,z):    return x*x + y*y + z*z
-def sssq(x,y,z):   return sqrt(ssq(x,y,z))
-def dist(p,q):     return sqrt(ssq(p.x-q.x, p.y-q.y, p.z-q.z))
-
 def produceOut(code, numText, LO):
-    '''Modify layout LO according to code and numbers; return new layout.'''
-    BP, OP, posts = LO.BP, LO.OP, LO.posts
+    '''Modify layout LO according to provided code and numbers'''
+    BP, OP, SR = LO.get3()
     bx, by, bz = BP.x, BP.y, BP.z
     nn = len(numText)
-    def getNums(j, k):
+    
+    def getNums(j, k): # Get list of values from list of number strings
         nums = []
         try:
             if j > nn or nn > k :
@@ -99,22 +108,22 @@ def produceOut(code, numText, LO):
     
     if code=='B':               # Set base point, BP
         nums = getNums(3,3)     # Need exactly 3 numbers
-        if nums: return Layout(Point(*nums), OP, posts)
+        if nums:   LO.BP = Point(*nums);  return
 
     if code=='O':               # Set origin point, OP
         nums = getNums(3,3)     # Need exactly 3 numbers
-        if nums: return Layout(BP, Point(*nums), posts)
+        if nums:   LO.OP = Point(*nums);  return
 
     if code=='C':               # Create a collection of posts
         nums = getNums(3,33333) # Need at least 3 numbers
         if nums:
             while len(nums) >= 3:
                 x, y, z = nums[0]+bx,  nums[1]+by, nums[2]+bz
-                posts.append(Point(x,y,z))
+                LO.posts.append(Point(x,y,z))
                 nums = nums[3:]
             if len(nums)>0:
                 print (f'Anomaly: code {code}, {numText} has {nums} left over')
-            return Layout(BP, OP, posts)
+            return
 
     if code=='L':               # Create a line of posts
         nums = getNums(4,4)     # Need exactly 4 numbers
@@ -123,8 +132,8 @@ def produceOut(code, numText, LO):
             x, y, z = bx, by, bz
             for k in range(n):
                 x, y, z = x+dx, y+dy, z+dz
-                posts.append(Point(x,y,z))
-            return Layout(BP, OP, posts)
+                LO.posts.append(Point(x,y,z))
+            return
 
     if code=='P':               # Create a polygon of posts        
         nums = getNums(3,3)     # Need exactly 3 numbers
@@ -133,9 +142,9 @@ def produceOut(code, numText, LO):
             theta = 2*pi/n
             x, y = rotate2(r, 0, a0*pi/180) # a0 in degrees
             for post in range(n):
-                posts.append(Point(bx+x, by+y, bz))
+                LO.posts.append(Point(bx+x, by+y, bz))
                 x, y = rotate2(x, y,theta)
-            return Layout(BP, OP, posts)
+            return
     
     if code in 'RT':            # Create an array of posts
         nums = getNums(4,4)     # Need exactly 4 numbers
@@ -148,11 +157,11 @@ def produceOut(code, numText, LO):
                 if code=='T' and (rr&1)==1:
                     x, roLen = bx - dx/2, c+1
                 for cc in range(roLen):
-                    posts.append(Point(x,y,z))
+                    LO.posts.append(Point(x,y,z))
                     x += dx
                 y += dy
-            return Layout(BP, OP, posts)
-    return LO                   # No change if we fail or fall thru
+            return
+    return                      # We might fail or fall thru
 
 def isTrue(x):
     '''Return false if x is None, or False, or an empty string, or a
@@ -188,12 +197,13 @@ def postTop(p, OP):   # Given post location p, return loc. of post top
     #print (f'OP is {ox} {oy} {oz},  xyz {x:0.1f} {y:0.1f} {z:0.1f}   txyz {tx:0.1f} {ty:0.1f} {tz:0.1f}')
     return tx, ty, tz, yAxisAngle, zAxisAngle
 
-def doLayout(design):
-    LO = Layout(Point(0,0,0), Point(0,0,0), [])
+def doLayout(layoutScript):
+    LO = Layout()
     pc, code, numbers = '?', '?', []
-    codes, digits = 'BCLOPRT', '01234356789+-.'
+    codes, digits = 'BCLOPRST', '01234356789+-.'
+    assembly = None
     
-    for cc in design.pLayout:   # Process current character
+    for cc in layoutScript:   # Process current character of script
         # Add character to number, or store a number?
         if cc in digits:
             num = num + cc if pc in digits else cc
@@ -202,30 +212,29 @@ def doLayout(design):
 
         # Process a completed entry, or start a new entry?
         if cc==';':
-            LO = produceOut(code, numbers, LO)
+            produceOut(code, numbers, LO)
         elif cc in codes:
             pc, code, numbers = '?', cc, []
         pc = cc                 # Prep to get next character
 
-    posts = LO.posts            # LO has the unscaled points list
-    OP = LO.OP
-    OP = Point(SF*OP.x, SF*OP.y, SF*OP.z)
-    LO = Layout(LO.BP, OP, posts)
+    LO.OP.scale(SF)
     # ----------------------
     # Scale the set of posts 
-    for k in range(len(posts)):
-        p = posts[k]
-        p = Point(SF*p.x, SF*p.y, SF*p.z)
-        posts[k] = p
+    for k in range(len(LO.posts)):
+        p = LO.posts[k]
+        if isTrue(zSpread):
+            zrat = 2/(1+p.z/zSize) # assumes z centers at z==0
+            p.scalexy(zrat)
+        p.scale(SF)
+        LO.posts[k] = p
         if isTrue(postList):
-            #print (f'Post {k:<3} ({p.x:8.2f}, {p.y:8.2f}, {p.z:8.2f} )')
             print (f'p{k:<2}=Point( {p.x:8.2f}, {p.y:8.2f}, {p.z:8.2f})')
 
     # ----------------------
     # Draw the set of posts
-    assembly = None;   pHi = SF*postHi
-    for k, p in enumerate(posts):
-        tx, ty, tz, yAxisAngle, zAxisAngle = postTop(p, OP)
+    pHi = SF*postHi
+    for k, p in enumerate(LO.posts):
+        tx, ty, tz, yAxisAngle, zAxisAngle = postTop(p, LO.OP)
         tube = cylinder(d=SF*postDiam, h=SF*postHi)
         tilt = rotate([0,yAxisAngle,zAxisAngle])(tube)
         cyli = translate([p.x, p.y, p.z])(tilt)
@@ -245,16 +254,16 @@ def doLayout(design):
             txt = translate([x-thik*len(str(k)), y, z])(txt)
             assembly = assembly + txt
 
-    return assembly, Layout(LO.BP, LO.OP, posts)
+    return assembly, Layout(LO.BP, LO.OP, LO.posts)
 
-def doCylinders(design, LO, assembly):
+def doCylinders(cylScript, LO, assembly):
     def topPoint(p):
         tx, ty, tz, yAxisAngle, zAxisAngle = postTop(p, LO.OP)
         return Point(tx, ty, tz)
     
     def oneCyl(listIt):   # Return a cylinder & its end-post #'s
         m, n = int(post1)%nPosts, int(post2)%nPosts
-        p, q = posts[m], posts[n]
+        p, q = LO.posts[m], LO.posts[n]
         pTop, qTop = topPoint(p), topPoint(q)
         px, py, pz = levelAt(level1, p, pTop)
         qx, qy, qz = levelAt(level2, q, qTop)
@@ -282,14 +291,12 @@ def doCylinders(design, LO, assembly):
         else:
             edgeList[v] = [w]
            
-
-    specs, posts = design.cSpec, LO.posts
     colorr='G'; thix='p'; pc = None
     post1, post2, level1, level2 = '0', '1', 'c','c'
-    nPosts = len(posts)
+    nPosts = len(LO.posts)
     nonPost = True
     edgeList, Lmax = {}, 0
-    for cc in specs:
+    for cc in cylScript:
         if cc in colors: colorr = cc
         elif cc in thixx: thix  = cc
         elif cc in levels:
@@ -309,16 +316,16 @@ def doCylinders(design, LO, assembly):
             addEdge(p2, p1)
             nonPost = True
         pc = cc
-    # Finished with specs; now see if we need to auto-add cylinders
+    # Finished with cylScript; now see if we need to auto-add cylinders
     cutoff = autoMax
     if cutoff > 0:   # See if any way for any more edges
         print (f'In auto-add, cutoff distance autoMax is {cutoff:7.3f}')
         cutoff2 = cutoff*cutoff
         #print (edgeList)
         for pn in range(nPosts):
-            p = posts[pn]
+            p = LO.posts[pn]
             for qn in range(1+pn, nPosts):
-                q = posts[qn]
+                q = LO.posts[qn]
                 dx, dy = p.x-q.x, p.y-q.y
                 #print (f'pn {pn}  qn {qn}   cutoff {cutoff:7.2f}  dx {dx:7.2f}  dy {dy:7.2f} ')
                 if abs(dx) > cutoff or abs(dy) > cutoff:
@@ -360,7 +367,7 @@ def installParams(parTxt):
 def loadScriptFile(fiName):
     '''Read parameters, layout script, and cylinders script from file'''
     mode = 0;                   # Start out in comments mode
-    pt = los = cs = ''          # Start with empty scripts
+    parTxt=''; layoutTxt=''; cylTxt=''  # Start with empty scripts
     with open(fiName) as fi:
         for line in fi:
             ll, l1, l2 = len(line), line[:1], line[:2]
@@ -369,11 +376,11 @@ def loadScriptFile(fiName):
                 elif l2=='=L': mode = 2 # Layout
                 elif l2=='=C': mode = 3 # Cylinders
             else:
-                if   mode==1: pt  = pt  + line
-                elif mode==2: los = los + line
-                elif mode==3: cs  = cs  + line
-    installParams(pt)           # Install params, if any
-    return Design(los, cs)      # Return Design
+                if   mode==1: parTxt    = parTxt    + line
+                elif mode==2: layoutTxt = layoutTxt + line
+                elif mode==3: cylTxt    = cylTxt    + line
+    installParams(parTxt)       # Install params, if any
+    return layoutTxt, cylTxt    # Return layout & cylinder scripts
 
 colors, levels = 'GYRBCMW',  'abcde'
 thixx,  digits = 'pqrstuvw', '01234356789'
@@ -387,20 +394,20 @@ if __name__ == '__main__':
     version, paramTxt, postLabel= 0, '','Bte' # Blue, size u, level e
     scadFile = f'pipeVue{version}.scad' # Name of scad output file
     postList = cylList = False # Control printing of post and cyl data
-    autoMax, autoList = 0, True
-    postAxial = True
+    autoMax, autoList  = 0, True
+    zSpread, zSize, postAxial = False, 1, True
     for k in range(1,len(argv)):
         paramTxt = paramTxt + ' ' + argv[k]
     installParams(paramTxt)     # Set params from command line
     
     if f == '':
-        design = Design('C 0,0,0; P5,1,0;', 'Gpae 1,2;;;;1;')
+        lScript, cScript = 'C 0,0,0; P5,1,0;', 'Gpae 1,2;;;;1;Rea 1,2;;;;1;'
     else:
-        design = loadScriptFile(f)  # May install params from file.
+        lScript, cScript = loadScriptFile(f) # May override some params
     installParams(paramTxt)     # Again, set params from command line.
 
-    assembly, LO = doLayout(design)
-    assembly = doCylinders(design, LO, assembly)
+    assembly, LO = doLayout(lScript)
+    assembly = doCylinders(cScript, LO, assembly)
     scad_render_to_file(assembly, scadFile,
                         file_header = f'$fn = {cylSegments};',
                         include_orig_code=False)

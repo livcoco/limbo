@@ -1,0 +1,48 @@
+An example file to demonstrate automatically making edges (cylinders)
+between posts that are within specified cutoff distance of each other.
+
+Note: In this example, generated points may superficially resemble a
+geodesic arrangement.  However, the arbitrarily selected radii and z
+values used don't give a real geodesic arrangement.  jiw 17 Feb 2020
+
+pipeVue's automatic-edge algorithm is simple-minded.  It merely
+generates all edges of lengths up to a cutoff limit, autoMax.  If
+autoMax is overly large, edges may be generated that are not part of a
+valid triangulation.
+
+zSpread=t turns on a conformal transform to give triangles on the
+outskirts of a hemisphere more screen area, for easier viewing.  It
+maps point (x,y,z) to (c*x,c*y,z) where c = 2/(1+z/zSize).  This can
+broaden or flatten the sides of the hemisphere, displaying like a cone
+with a rounded top.  Larger zSize decreases the broadening effect.
+Here, with zSize=6, the outer polygons are narrower than if zSize were
+equal to the radius 4.
+
+Other parameters: autoList=f says don't list auto-edges.  autoList=t
+would list them.  autoMax is the maximum length generated edges can
+have.  autoMax default value is 0, for no edge generation.
+postAxial=f makes the posts point at OP. OP is given by O entry in the
+layout section.  postLabel=cMu makes labels at level c, magenta, size u.
+
+=P  
+  postLabel=cMu  postAxial=f
+  postHi=0.2     postDiam=0.08  autoList=f
+  pDiam=0.04     endGap=0       postList=f     cylList=f
+  zSpread=t      zSize=6        autoMax=227
+
+=L   The O entry specifies OP
+O 0 0 0;
+B 0 0 4;  C 0,0,0;
+= rows 1 and 2 have posts 1-5 and 6-15
+= rows 3,4,5,6 have posts 16-30, 31-50, 51-75, and 76-105
+B 0 0 3.873;  P5, 1.00, 0;
+B 0 0 3.500;  P10,1.94, 0;
+B 0 0 2.905;  P15,2.75, 0;
+B 0 0 2.125;  P20,3.39, 0;
+B 0 0 1.210;  P25,3.81, 0;
+B 0 0 0.219;  P30,3.99, 0;
+  
+=C
+= all the visible edges are automatic in this example.
+= (The 0-0 edge is too short to see; it's here to set color and levels.)
+Bpbb 0 0;

@@ -20,8 +20,9 @@ to a file (by default, to pipeVue.scad). For example, you might say
 
      ./pipeVue.py  f=eg-pentagon-script
 
-which will produce pipeVue.scad based on that script, and then might
-say
+which will produce pipeVue.scad based on that script, and then you
+might say
+
      openscad pipeVue.scad &
 
 which will cause OpenSCAD to read pipeVue.scad and display the created

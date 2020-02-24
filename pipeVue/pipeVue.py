@@ -230,7 +230,7 @@ def postLayout(scripts):
         if   l2=='=C': mode = 3 # Cylinders
         elif l2=='=L': mode = 2 # Layout
         elif l2=='=P':
-            installParams((line,))
+            installParams((line,paramTxt))
             continue
         if mode != 2 or l1 == '=': #  not in layout ops?
             continue
@@ -329,7 +329,7 @@ def writeCylinders(fout, LO, scripts):
         if   l2=='=C': mode = 3 # Cylinders
         elif l2=='=L': mode = 2 # Layout
         elif l2=='=P':
-            installParams((line,))
+            installParams((line,paramTxt))
             continue
         if mode != 3 or l1 == '=': # not in cylinder ops?
             continue

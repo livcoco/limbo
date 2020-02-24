@@ -7,7 +7,10 @@ pentagons, of radii 1, 1.6, and 2, with the middle pentagon rotated
 36 degrees to place its vertices on lines midway between vertices
 of the other pentagons.  Thus, a total of 16 points.
 
-In an = line, only the first two characters (=L or =C) matter.
+In an =L or =C line, only the first two characters (=L or =C) matter.
+In an =P line, the rest of the line should contain var=value pairs.
+Note, =P lines can be intermixed within other sections, and are treated
+in the order that they appear.
 
 =Layout
 C 0,0,0;

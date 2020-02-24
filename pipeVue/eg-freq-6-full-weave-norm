@@ -1,10 +1,9 @@
-=P
-  postAxial=f  
-  postLabel=Gud
-  postDiam=0.06
-  postHi=0.16
-  pDiam=0.04
-  endGap=0
+=P  postAxial=f  
+=P  postLabel=Gud
+=P  postDiam=0.06
+=P  postHi=0.16
+=P  pDiam=0.04
+=P  endGap=0
   
 =L
 B 0 0 .7;  C 0,0,0;

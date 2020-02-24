@@ -1,9 +1,8 @@
-=P
-postLabel=Rwe
-postHi=0.3
+=P postLabel=Rwe
+=P postHi=0.3 postAxial=f
 
 =L
-B 0 0 .7;  C 0,0,0;
+B 0 0 .7;  C 0,0,0;   O 0,0,-4;
 = row 1 posts 1-5
 B 0 0 .5;  P5,1,0;
 = row 2 posts 6-10 and 11-15

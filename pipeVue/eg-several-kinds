@@ -2,10 +2,10 @@ eg-several-kinds: This does a layout with C, P, B, R, T, L kinds of
 entries, then draws fairly basic cylinders involving the posts in
 polygons.
 
-=P
-  pDiam=0.1 qDiam=0.07  endGap=0
+=P  pDiam=0.1 qDiam=0.07  endGap=0
+
 = Make tall fat posts so they are more visible
-  postHi=.4 postDiam=.08
+=P  postHi=.4 postDiam=.08
 
 =L
 C 0,0,0;

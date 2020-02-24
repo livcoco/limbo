@@ -23,12 +23,12 @@ would list them.  autoMax is the maximum length generated edges can
 have.  autoMax default value is 0, for no edge generation.
 postAxial=f makes the posts point at OP. OP is given by O entry in the
 layout section.  postLabel=cMu makes labels at level c, magenta, size u.
-
-=P  
-  postLabel=cMu  postAxial=f
-  postHi=0.2     postDiam=0.08  autoList=f
-  pDiam=0.04     endGap=0       postList=f     cylList=f
-  zSpread=t      zSize=6        autoMax=227
+  
+=P  postLabel=cMu  postAxial=f
+=P  postHi=0.2     postDiam=0.08  autoList=f
+=P  pDiam=0.04     endGap=0       postList=f     cylList=f
+=P  zSpread=t      zSize=6        autoMax=227
+=P  userPar0=380   userCode=eg-sphere1.scad
 
 =L   The O entry specifies OP
 O 0 0 0;

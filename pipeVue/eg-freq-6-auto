@@ -26,11 +26,9 @@ posts point at OP, and postLabel=cMu gives labels that are magenta,
 size u, level c.  To see a list of auto-edges, change autoList=f to
 autoList=t.
 
-=P
-  
-  postLabel=cMu  postAxial=f    autoMax=127
-  postHi=0.2     postDiam=0.08  autoList=f
-  pDiam=0.04     endGap=0       postList=f     cylList=f
+=P  postLabel=cMu  postAxial=f    autoMax=127
+=P  postHi=0.2     postDiam=0.08  autoList=f
+=P  pDiam=0.04     endGap=0       postList=f     cylList=f
 
 =L   The O entry specifies OP
 O 0 0 -4;
@@ -47,4 +45,5 @@ B 0 0 -1.6; P25,3.5,0;
 
 = all the visible edges are automatic in this example.
 = (The 0-0 edge is too short to see; it's here to set color and levels.)
+=C
 Bpbb 0 0;

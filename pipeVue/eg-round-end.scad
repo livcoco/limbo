@@ -65,6 +65,7 @@ module oneCyl (p1=0, p2=0, cylDiam=0, cylLen=0, yAngle=0, zAngle=0,
       rotate([0, yAngle, zAngle])
         canePost (cylDiam, cylLen, 700, cColor, "Red");
   else
-    color(c = yAngle<92? cColor : hash3(zAngle))
+    //color(c = yAngle<92? cColor : hash3(zAngle))
+      color(c = hash3(yAngle-zAngle))
       roundEnds (cylDiam, cylLen, [cx, cy, cz], [0, yAngle, zAngle]);
 }

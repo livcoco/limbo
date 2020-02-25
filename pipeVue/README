@@ -13,7 +13,8 @@ your system.  [Early versions of pipeVue also required the
 Obtain files pipeVue.py, pipeVue.codeBase.scad, and a script file for
 the drawing you wish to make.  For script-file examples, see the files
 in the pipeVue directory whose names start with "eg-".  For details
-about how to write scripts, see the LibreOffice file pipeVue.dox.odt .
+about how to write scripts, see the LibreOffice file pipeVue.dox.odt
+or PDF file pipeVue.dox.pdf.
 
 When you run the program to process a script, it will write SCAD code
 to a file (by default, to pipeVue.scad). For example, you might say

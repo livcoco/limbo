@@ -11,7 +11,7 @@ because of parameter userCode=eg-auto-help-2.scad.  In OpenSCAD, you
 can use the Customizer panel to change userPar values, then press
 Enter or F5.
   
-pipeVue's automatic-edge algorithm is simple-minded.  It merely
+pypeVue's automatic-edge algorithm is simple-minded.  It merely
 generates all edges of lengths up to a cutoff limit, autoMax.  If
 autoMax is overly large, edges may be generated that are not part of a
 valid triangulation.

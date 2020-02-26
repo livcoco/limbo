@@ -1,7 +1,7 @@
 // eg-roundend.scad -- OpenSCAD code for onePost and oneCyl examples.
 
 // In this example, modules onePost and oneCyl override modules in
-// pipeVue.codeBase.scad.  All the other modules and functions here
+// pypeVue.codeBase.scad.  All the other modules and functions here
 // are convenience functions.  jiw 24 Feb 2020
 
 // Make a three-color post with specified colors

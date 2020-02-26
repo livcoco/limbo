@@ -7,10 +7,10 @@ arrangements of edges in geodesic dome structures.'''
 
 # This program processes a layout script and a cylinders script, while
 # generating an output file containing OpenSCAD code to represent the
-# structure described by the scripts.  See `pipeVue.dox.odt` for
+# structure described by the scripts.  See `pypeVue.dox.odt` for
 # examples and details of scripts and how to write them.  Note, in
 # default form the generated SCAD code depends upon access to file
-# pipeVue.codebase.scad .
+# pypeVue.codebase.scad .
 
 #  A layout script tells where to locate posts.  It has entries with
 #  type of pattern (polygon, rectangular grid, triangular grid),
@@ -21,7 +21,7 @@ arrangements of edges in geodesic dome structures.'''
 #  elements.  Each semicolon terminator invokes cylinder production.
 
 # Optional parameters for this program are described in a table in
-# pipeVue.dox.odt, which tells how to specify parameter values endGap,
+# pypeVue.dox.odt, which tells how to specify parameter values endGap,
 # postHi, pDiam, qDiam, SF, and numerous other params.  Parameter
 # settings can appear on the command line as well as in =P lines of a
 # scripts file.  A table in the documentation shows parameter names,
@@ -34,7 +34,7 @@ arrangements of edges in geodesic dome structures.'''
 
 # When modifying this code:
 # (a) At outset (ie once only), at command prompt say:
-#           SCF=pipeVue.scad;  PYF=${SCF%.scad}.py
+#           SCF=pypeVue.scad;  PYF=${SCF%.scad}.py
 #           STF=${SCF%.scad}.stl; exec-on-change $PYF "python3 $PYF" &
 #           echo $PYF, $SCF, $STF;  openscad $SCF &
 #     [To avoid a 'Text file busy' shell error message, instead of
@@ -44,8 +44,8 @@ arrangements of edges in geodesic dome structures.'''
 #      https://github.com/ghjwp7/plastics/blob/master/exec-on-change .
 #      Or just run the program manually as needed.  When you are
 #      working on a particular script S, you can replace the e-o-c
-#      shown above with:    exec-on-change S "./pipeVue f=S" &
-#      which will run pipeVue0 on S whenever you change the file S.]
+#      shown above with:    exec-on-change S "./pypeVue f=S" &
+#      which will run pypeVue0 on S whenever you change the file S.]
 
 # (b) After program changes that you want to see the effect of, save
 #     the file.  The exec-on-change script will be informed of the
@@ -414,8 +414,8 @@ endGap,  postHi,   postDiam = 0.03, 0.16, qDiam
 f,       SF,    cylSegments = '', 100, 30
 paramTxt, postLabel= '=P ','Bte' # Blue, size u, level e
 userCode = ''
-codeBase = f'pipeVue.codeBase.scad' # SCAD functions for posts, cyls, etc
-scadFile = f'pipeVue.scad'          # Name of scad output file
+codeBase = f'pypeVue.codeBase.scad' # SCAD functions for posts, cyls, etc
+scadFile = f'pypeVue.scad'          # Name of scad output file
 postList = cylList = False # Control printing of post and cyl data
 autoMax, autoList  = 0, True
 zSpread, zSize, postAxial = False, 1, True
@@ -431,7 +431,7 @@ installParams((paramTxt,))  # Set params from command line again
 LO = postLayout(scripts)    # Create post locations layout
 date = datetime.today().strftime('%Y-%m-%d  %H:%M:%S')
 frontCode = f'''// File {scadFile}, generated  {date}
-// by pipeVue from script "{f}"
+// by pypeVue from script "{f}"
 $fn = {cylSegments};
 userPar0 = {userPar0};
 userPar1 = {userPar1};
@@ -453,4 +453,4 @@ with open(scadFile, 'w') as fout:
     writeLabels   (fout, LO)
     writeCylinders(fout, LO, scripts)
     fout.write(backCode)
-print (f'For script "{f}", pipeVue wrote code to {scadFile} at {date}')
+print (f'For script "{f}", pypeVue wrote code to {scadFile} at {date}')

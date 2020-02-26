@@ -1,5 +1,5 @@
 // scad helper code for use by eg-auto-test-2's addOn and subOff
-// examples.  Modules here override 2 modules in pipeVue.codeBase.scad
+// examples.  Modules here override 2 modules in pypeVue.codeBase.scad
 
 // Add a sphere centered at OP, of radius r=userPar0, which can be
 // varied in OpenSCAD's Customizer panel  

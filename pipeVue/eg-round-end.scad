@@ -44,9 +44,9 @@ module onePost (postNum=0, postDiam=0, postHi=0, yAngle=0, zAngle=0,
   }
 }
 
-function pipix(x,k) = (x+PI-3)*pow(PI,k);
-function fracn(x,k) = pipix(x,k) - floor(pipix(x,k));
-function hash3(x) = [fracn(x,1), fracn(x,2), fracn(x,3)];
+function hash3(x) =
+  let (b = (x+PI-3)*PI, c=b*PI, d=c*PI)
+  [b-floor(b), c-floor(c), d-floor(d)];
 
 module roundEnds (cylDiam, cylLen, trans, rota) {
   translate(trans)

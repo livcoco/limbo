@@ -6,11 +6,11 @@
 // The generated code file has the following form:
 
 //     $fn = `cylSegments`;
-//     userPar0=`userPar0`; // userPar items are verbatim
-//     userPar1=`userPar1`; // so can be of any type needed
-//     userPar2=`userPar2`; // eg 123,  13.5, "xyz"
+//     userPar0=`userPar0`; // userPar items are verbatim so can
+//     userPar1=`userPar1`; // be of any type needed, eg 123, 13.5,
+//     userPar2=`userPar2`; // "xyz" etc, if properly quoted or not
 //     use <`userCode`>
-//     use <`codebase`>
+//     include <`codebase`>
 //     difference() {
 //       union() {
 //         `Sequence of onePost/oneLabel/oneCyl calls`

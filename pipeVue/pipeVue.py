@@ -437,7 +437,7 @@ userPar0 = {userPar0};
 userPar1 = {userPar1};
 userPar2 = {userPar2};
 {'' if codeBase else '//'}use <{codeBase}>
-{'' if userCode else '//'}use <{userCode}>
+{'' if userCode else '//'}include <{userCode}>
 difference() {'{'}
   union() {'{'}
 '''

@@ -45,8 +45,8 @@ module onePost (postNum=0, postDiam=0, postHi=0, yAngle=0, zAngle=0,
 }
 
 function hash3(x) =
-  let (b = (x+PI-3)*PI, c=b*PI, d=c*PI)
-  [b-floor(b), c-floor(c), d-floor(d)];
+  let (a = (x+PI-3)*PI+userPar0, b=a*PI, c=b*PI)
+  [a-floor(a), b-floor(b), c-floor(c)];
 
 module roundEnds (cylDiam, cylLen, trans, rota) {
   translate(trans)

@@ -1,6 +1,7 @@
 =P  dRatio=1.1     endGap=0 postHi=.4
 =P  postDiam=.08   pDiam=.1  qDiam=.1
-=P  postLabel=Rtc  userCode=eg-round-end.scad
+=P  postLabel=Rtc
+=P  userCode=eg-two-helper.scad  userPar0=0.01
 
 =L
 B-1,0,0; P7,1,25.7142857;

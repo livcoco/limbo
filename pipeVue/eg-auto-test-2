@@ -5,6 +5,12 @@ Note: In this example, generated points may superficially resemble a
 geodesic arrangement.  However, the arbitrarily selected radii and z
 values used don't give a real geodesic arrangement.  jiw 17 Feb 2020
 
+In parameter settings, userPar0 and userPar1 values are a sphere-size
+and a cube-size, respectively, within the SCAD code that's included
+because of parameter userCode=eg-auto-help-2.scad.  In OpenSCAD, you
+can use the Customizer panel to change userPar values, then press
+Enter or F5.
+  
 pipeVue's automatic-edge algorithm is simple-minded.  It merely
 generates all edges of lengths up to a cutoff limit, autoMax.  If
 autoMax is overly large, edges may be generated that are not part of a
@@ -28,7 +34,7 @@ layout section.  postLabel=cMu makes labels at level c, magenta, size u.
 =P  postHi=0.2     postDiam=0.08  autoList=f
 =P  pDiam=0.04     endGap=0       postList=f     cylList=f
 =P  zSpread=t      zSize=6        autoMax=227
-=P  userPar0=380   userCode=eg-sphere1.scad
+=P  userPar0=400   userPar1=800   userCode=eg-auto-help-2.scad
 
 =L   The O entry specifies OP
 O 0 0 0;

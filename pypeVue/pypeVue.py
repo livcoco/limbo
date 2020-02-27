@@ -53,7 +53,7 @@ arrangements of edges in geodesic dome structures.'''
 #     Automatic Reload and Preview` option is on] openscad will see
 #     that $SCF changed*, and re-render its image.
 
-from sys import argv
+from sys import argv, exit, exc_info, stderr
 from datetime import datetime
 from math import sqrt, pi, cos, sin, asin, atan2
 
@@ -103,13 +103,32 @@ class Layout:
     def get3(self):
         return  self.BP, self.OP, self.sRadi
 
-def userGet(vName):
-    print (f'u_get: {vName} is "uGlob[vName]"')
-    return uGlob[vName]
-    
-def user_put(vName, vVal):
-    print (f'u_put: {vName}={vVal}')
-    uGlob[vName] = vVal
+def userGet(vName):  # this routine doesn't work -- LO not defined
+    print (f'In userGet: vName is "{vName}"')
+    #print (f'In userGet, locals is: {locals()}')
+    print (f'In userGet: LO is "{LO}"')
+    #return userLocals[vName]
+    return 1
+
+def userPut(vName, vVal): # this routine doesn't work -- userLocals not defined
+    print (f'userPut: {vName}={vVal}')
+    userLocals[vName] = vVal
+
+def arithmetic(line, xTrace):
+    #global userLocals
+    # Remove =A and any leading whitespace, to avoid indentation error
+    code = line[2:].lstrip()
+    if xTrace:
+        shorts = [f'{x}={userLocals[x]}' for x in userLocals.keys() if len(x)==1]
+        print (f'Code to exec:  {code}\nShort userLocals: {shorts}')
+    try:
+        if code:    # have we got any user-code?
+            exec (code, userLocals)   # yes, try to execute it
+    except SystemExit:
+        exit(0)             # allow code to exit
+    except Exception:           # catch normal exceptions
+        er = exc_info()
+        stderr.write(f'\nDuring `Arithmetic`, error <<{er[1]}>> occurred while exec`ing\n<<{code}>>.\n')
 
 def rotate2(a,b,theta):
     st = sin(theta)
@@ -240,7 +259,7 @@ def postLayout(scripts):
             installParams((line,paramTxt));
             continue
         elif l2=='=A':
-            arithmetic(line);
+            arithmetic(line, traceExec);
             continue
         elif l1=='=': continue  # Any other = lines are comments
         if mode != 2:           #  not in layout ops?
@@ -250,11 +269,9 @@ def postLayout(scripts):
             # Add character to number, or store a number, or what?
             if pc == '#':       # Set or use a simple variable
                 if code=='?':
-                    userDict[cc] = len(LO.posts)
-                    #print (f'Set var {cc} to {userDict[cc]}')
+                    userLocals[cc] = len(LO.posts)
                 else:      # Substitute value into list of numbers
-                    numbers.append(userDict[cc])
-                    #print (f'Set numbers[{len(numbers)-1}] from var {cc}, value {userDict[cc]}')
+                    numbers.append(userLocals[cc])
             elif cc in digits:
                 num = num + cc if pc in digits else cc
             elif pc in digits:
@@ -350,7 +367,7 @@ def writeCylinders(fout, LO, scripts):
             installParams((line,paramTxt))
             continue
         elif l2=='=A':
-            arithmetic(line);
+            arithmetic(line, traceExec);
             continue
         elif l1=='=': continue  # Any other = lines are comments
         if mode != 3:           # not in cylinder ops?
@@ -358,7 +375,7 @@ def writeCylinders(fout, LO, scripts):
         pc, code = '?', '?'
         for cc in ss:            
             if pc == '#':       # Use a simple variable
-                post1, post2 = post2, userDict[cc]
+                post1, post2 = post2, userLocals[cc]
                 nonPost = False
             elif cc in colors: colorr = cc
             elif cc in thixx: thix  = cc
@@ -395,10 +412,6 @@ def writeCylinders(fout, LO, scripts):
                 if pn not in edgeList or qn not in edgeList[pn]:
                     post1, post2 = str(pn), str(qn)
                     p1, p2 = oneCyl(autoList)
-
-def arithmetic(line):
-    # Remove leading whitespace to avoid indentation error
-    exec(line[2:].lstrip(), userDict)
 
 def installParams(script):
     '''Given a script, extract variable names and values from lines like
@@ -450,14 +463,16 @@ if __name__ == '__main__':
     autoMax, autoList  = 0, True
     zSpread, zSize, postAxial = False, 1, True
     userPar0 = userPar1 = userPar2 = '""'
+    traceExec=False
     script1 = '=P postDiam=.1 endGap=.05','=C','Gpae 1,2;;;;1;Rea 1,2;;;;1;','=L','C 0,0,0; P5,1,0;'
     for k in range(1,len(argv)):
         paramTxt = paramTxt + ' ' + argv[k]
 
-    userDict = {'uGlob': globals()} # Initialize user-space dict
+    userLocals = {}               # Initialize empty user-space dict
     from os import path
     myname = path.splitext(path.basename(__file__))[0]
-    exec(f'from {myname} import Point,Post,Layout, userGet, user_put', userDict)
+    exec(f'from {myname} import Point,Post,Layout, userGet, userPut', globals(), userLocals)
+    #print (f'{"="*77}\nIn __main__, userLocals is {userLocals}\n{"="*77}\n')
 
     installParams((paramTxt,)) # Set f param from command line if specified
     scripts = script1 if f == '' else loadScriptFile(f)

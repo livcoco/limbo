@@ -103,6 +103,13 @@ class Layout:
     def get3(self):
         return  self.BP, self.OP, self.sRadi
 
+def userGet(vName):
+    print (f'u_get: {vName} is "uGlob[vName]"')
+    return uGlob[vName]
+    
+def user_put(vName, vVal):
+    print (f'u_put: {vName}={vVal}')
+    uGlob[vName] = vVal
 
 def rotate2(a,b,theta):
     st = sin(theta)
@@ -226,24 +233,36 @@ def postLayout(scripts):
     mode = 0                    # mode 0 = comments at start
     numbers = []
     for line in scripts:
-        l1, l2 = line[:1], line[:2]
+        l1, l2, ss = line[:1], line[:2], line
         if   l2=='=C': mode = 3 # Cylinders
-        elif l2=='=L': mode = 2 # Layout
+        elif l2=='=L': mode = 2; ss=line[2:] # Layout
         elif l2=='=P':
-            installParams((line,paramTxt))
+            installParams((line,paramTxt));
             continue
-        if mode != 2 or l1 == '=': #  not in layout ops?
+        elif l2=='=A':
+            arithmetic(line);
+            continue
+        elif l1=='=': continue  # Any other = lines are comments
+        if mode != 2:           #  not in layout ops?
             continue
         pc, code = '?', '?'
-        for cc in line:   # Process characters of script
-            # Add character to number, or store a number?
-            if cc in digits:
+        for cc in ss:   # Process characters of script
+            # Add character to number, or store a number, or what?
+            if pc == '#':       # Set or use a simple variable
+                if code=='?':
+                    userDict[cc] = len(LO.posts)
+                    #print (f'Set var {cc} to {userDict[cc]}')
+                else:      # Substitute value into list of numbers
+                    numbers.append(userDict[cc])
+                    #print (f'Set numbers[{len(numbers)-1}] from var {cc}, value {userDict[cc]}')
+            elif cc in digits:
                 num = num + cc if pc in digits else cc
             elif pc in digits:
                 numbers.append(num) # Add number to list of numbers
             # Process a completed entry, or start a new entry?
             if cc==';':
                 produceOut(code, numbers, LO)
+                code = '?'
             elif cc in codes:
                 pc, code, numbers = '?', cc, []
             pc = cc             # Prep to get next character
@@ -323,19 +342,25 @@ def writeCylinders(fout, LO, scripts):
     nonPost = True
     edgeList, Lmax = {}, 0
     mode = 0                    # mode 0 = comments at start
-    numbers = []
     for line in scripts:
-        l1, l2 = line[:1], line[:2]
-        if   l2=='=C': mode = 3 # Cylinders
+        l1, l2, ss = line[:1], line[:2], line
+        if   l2=='=C': mode = 3; ss=line[2:] # Cylinders
         elif l2=='=L': mode = 2 # Layout
         elif l2=='=P':
             installParams((line,paramTxt))
             continue
-        if mode != 3 or l1 == '=': # not in cylinder ops?
+        elif l2=='=A':
+            arithmetic(line);
+            continue
+        elif l1=='=': continue  # Any other = lines are comments
+        if mode != 3:           # not in cylinder ops?
             continue
         pc, code = '?', '?'
-        for cc in line:
-            if cc in colors: colorr = cc
+        for cc in ss:            
+            if pc == '#':       # Use a simple variable
+                post1, post2 = post2, userDict[cc]
+                nonPost = False
+            elif cc in colors: colorr = cc
             elif cc in thixx: thix  = cc
             elif cc in levels:
                 level1, level2 = level2, cc
@@ -371,6 +396,10 @@ def writeCylinders(fout, LO, scripts):
                     post1, post2 = str(pn), str(qn)
                     p1, p2 = oneCyl(autoList)
 
+def arithmetic(line):
+    # Remove leading whitespace to avoid indentation error
+    exec(line[2:].lstrip(), userDict)
+
 def installParams(script):
     '''Given a script, extract variable names and values from lines like
     "=P var1=val1 var2=val2 var3=val3 ...".  Convert the values to
@@ -404,33 +433,40 @@ def loadScriptFile(fiName):   # Read scripts from file
     with open(fiName) as fi:
         return fi.readlines()
 
-colors, levels = 'GYRBCMW',  'abcde'
-thixx,  digits = 'pqrstuvw', '01234356789'
-colorSet = dict({'G':'"Green"', 'Y':'"Yellow"', 'R':'"Red"', 'B':'"Blue"', 'C':'"Cyan"', 'M':'"Magenta"', 'W':'"White"'})   
+if __name__ == '__main__':
+    colors, levels = 'GYRBCMW',  'abcde'
+    thixx,  digits = 'pqrstuvw', '01234356789'
+    colorSet = dict({'G':'"Green"', 'Y':'"Yellow"', 'R':'"Red"', 'B':'"Blue"', 'C':'"Cyan"', 'M':'"Magenta"', 'W':'"White"'})   
 
-# Set initial values of main parameters
-pDiam,   qDiam,    dRatio   = 0.06, 0.02, sqrt(2)
-endGap,  postHi,   postDiam = 0.03, 0.16, qDiam
-f,       SF,    cylSegments = '', 100, 30
-paramTxt, postLabel= '=P ','Bte' # Blue, size u, level e
-userCode = ''
-codeBase = f'pypeVue.codeBase.scad' # SCAD functions for posts, cyls, etc
-scadFile = f'pypeVue.scad'          # Name of scad output file
-postList = cylList = False # Control printing of post and cyl data
-autoMax, autoList  = 0, True
-zSpread, zSize, postAxial = False, 1, True
-userPar0 = userPar1 = userPar2 = '""'
-script1 = '=P postDiam=.1 endGap=.05','=C','Gpae 1,2;;;;1;Rea 1,2;;;;1;','=L','C 0,0,0; P5,1,0;'
-for k in range(1,len(argv)):
-    paramTxt = paramTxt + ' ' + argv[k]
+    # Set initial values of main parameters
+    pDiam,   qDiam,    dRatio   = 0.06, 0.02, sqrt(2)
+    endGap,  postHi,   postDiam = 0.03, 0.16, qDiam
+    f,       SF,    cylSegments = '', 100, 30
+    paramTxt, postLabel= '=P ','Bte' # Blue, size u, level e
+    userCode = ''
+    codeBase = f'pypeVue.codeBase.scad' # SCAD functions for posts, cyls, etc
+    scadFile = f'pypeVue.scad'          # Name of scad output file
+    postList = cylList = False # Control printing of post and cyl data
+    autoMax, autoList  = 0, True
+    zSpread, zSize, postAxial = False, 1, True
+    userPar0 = userPar1 = userPar2 = '""'
+    script1 = '=P postDiam=.1 endGap=.05','=C','Gpae 1,2;;;;1;Rea 1,2;;;;1;','=L','C 0,0,0; P5,1,0;'
+    for k in range(1,len(argv)):
+        paramTxt = paramTxt + ' ' + argv[k]
 
-installParams((paramTxt,)) # Set f param from command line if specified
-scripts = script1 if f == '' else loadScriptFile(f)
-installParams(scripts)      # Set codeBase & userPars if specified
-installParams((paramTxt,))  # Set params from command line again
-LO = postLayout(scripts)    # Create post locations layout
-date = datetime.today().strftime('%Y-%m-%d  %H:%M:%S')
-frontCode = f'''// File {scadFile}, generated  {date}
+    userDict = {'uGlob': globals()} # Initialize user-space dict
+    from os import path
+    myname = path.splitext(path.basename(__file__))[0]
+    exec(f'from {myname} import Point,Post,Layout, userGet, user_put', userDict)
+
+    installParams((paramTxt,)) # Set f param from command line if specified
+    scripts = script1 if f == '' else loadScriptFile(f)
+    installParams(scripts)      # Set codeBase & userPars if specified
+    installParams((paramTxt,))  # Set params from command line again
+    LO = postLayout(scripts)    # Create post locations layout
+    date = datetime.today().strftime('%Y-%m-%d  %H:%M:%S')
+
+    frontCode = f'''// File {scadFile}, generated  {date}
 // by pypeVue from script "{f}"
 $fn = {cylSegments};
 userPar0 = {userPar0};
@@ -441,16 +477,16 @@ userPar2 = {userPar2};
 difference() {'{'}
   union() {'{'}
 '''
-backCode = f'''\n
+    backCode = f'''\n
     addOn({SF}, {LO.BP}, {LO.OP}); // unscaled BP, OP
   {'}'}
   subOff ({SF}, {LO.BP}, {LO.OP}); // unscaled BP, OP
 {'}'}'''
 
-with open(scadFile, 'w') as fout:
-    fout.write(frontCode)
-    writePosts    (fout, LO)
-    writeLabels   (fout, LO)
-    writeCylinders(fout, LO, scripts)
-    fout.write(backCode)
-print (f'For script "{f}", pypeVue wrote code to {scadFile} at {date}')
+    with open(scadFile, 'w') as fout:
+        fout.write(frontCode)
+        writePosts    (fout, LO)
+        writeLabels   (fout, LO)
+        writeCylinders(fout, LO, scripts)
+        fout.write(backCode)
+    print (f'For script "{f}", pypeVue wrote code to {scadFile} at {date}')

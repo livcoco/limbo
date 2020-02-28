@@ -276,13 +276,13 @@ def scriptCyl(ss, preCyl):
         elif cc in colors: colo = cc
         elif cc in thixx: thix  = cc
         elif cc in levels:
-            level1, level2 = level2, cc
+            lev1, lev2 = lev2, cc
         elif cc in digits:
             if pc in digits:  post2 = post2 + cc
             else:             post1, post2 = post2, cc
             nonPost = False
         elif cc=='/':
-            level1, level2 = level2, level1
+            lev1, lev2 = lev2, lev1
         elif cc==';':
             p1, p2 = int(post1), int(post2)
             if nonPost:
@@ -408,10 +408,15 @@ def writeCylinders(fout, clo, chi, listIt):
     fout.write('\n//  oneCyl (p1,2,cylDiam,cylLen,yAngle,zAngle,  c xyz,  e xyz, cColor)\n')
     for c in range(clo, chi):
         oneCyl(LO.cyls[c], listIt)
-
-def autoAdder():    # See if we need to auto-add cylinders
+#-------------------------------------------------------------
+def autoAdder(fout):    # See if we need to auto-add cylinders
     cutoff = autoMax
     clo = len(LO.cyls) # Record how many cylinders are already processed
+    nPosts = len(LO.posts)
+    edgeList = LO.edgeList
+    # in this version punt color, thix, levels ...
+    colo, thix, lev1, lev2 = 'B', 'p', 'c','c'
+            
     if cutoff > 0:     # See if any way for any more edges
         print (f'In auto-add, cutoff distance autoMax is {cutoff:7.3f}')
         cutoff2 = cutoff*cutoff
@@ -425,9 +430,11 @@ def autoAdder():    # See if we need to auto-add cylinders
                 d2 = ssq(dx, dy, dz)
                 if d2 > cutoff2: continue
                 if pn not in edgeList or qn not in edgeList[pn]:
-                    post1, post2 = str(pn), str(qn)
-                    p1, p2 = oneCyl(autoList)
-
+                    post1, post2 = str(pn), str(qn)          
+                    cyl = Cylinder(pn,qn, lev1, lev2, colo, thix, endGap, 0,0)
+                    LO.cyls.append(cyl)
+        writeCylinders(fout, clo, len(LO.cyls), autoList)
+#-------------------------------------------------------------
 def installParams(script):
     '''Given script lines that are Parameter-setting lines, this extracts
     variable names and values from it, like "var1=val1 var2=val2
@@ -513,5 +520,6 @@ difference() {'{'}
         writePosts    (fout)
         writeLabels   (fout)
         writeCylinders(fout, 0, len(LO.cyls), cylList)
+        autoAdder     (fout)
         fout.write(backCode)
     print (f'For script "{f}", pypeVue wrote code to {scadFile} at {date}')

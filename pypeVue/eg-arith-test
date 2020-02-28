@@ -1,0 +1,15 @@
+= Generates an octagon and a hexagon, and prints "p q r s t = 8 9 8 6 14" etc
+=A p=8; s=6
+=A gg['postDiam']=0.2; print('gg postDiam set to', gg['postDiam'], 'in =A')
+=L P#p,0.8,0;  #r  P#s,1.2,0;  #t
+=A q=p+1; print ('p q r s t =',p,q,r,s,t)
+=C G0,1;;;;;;;0; R#p#q;;;;;#p;
+=A print('gg postLabel is', gg['postLabel'])
+=A LO=gg['LO']; print('len LO.posts is ', len(LO.posts))
+=L P#t,1.5,0;
+=A print('len LO.posts is ', len(LO.posts))
+=A LO.posts.append(Post(Point(0,0,0), Point(.1,.1,.1), .05, .1, 45, 45))
+=A print('len LO.posts is ', len(LO.posts))
+=A print('Last post is ', LO.posts[-1])
+=C C27,28;
+=P postHi=.5

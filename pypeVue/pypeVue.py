@@ -380,34 +380,32 @@ def writeLabels(fout):
         fout.write(f'    oneLabel({p.num}, {p.diam}, {p.hite}, {p.yAngle}, {p.zAngle}, {p.foot}, {lxyz}, {cName}, {thik}, "{txt}");\n')
 
 #=====================================
-def oneCyl(cyl, listIt):   # Draw one cylinder
-    post1, post2, lev1, lev2, colo, thix, gap, data, num = cyl.get9()
-    #print(cyl)
-    gap = SF*gap                # gap needs scaling
-    posts = LO.posts
-    nPosts = len(posts)
-    p1, p2 = min(post1,nPosts-1), min(post2,nPosts-1)
-    pp, qq = posts[p1], posts[p2]
-    p = levelAt(lev1, pp)
-    q = levelAt(lev2, qq)
-    dx, dy, dz = q.diff(p)
-    L = round(max(0.1, sssq(dx,  dy,  dz)), 2)
-    cName = colorSet[colo]
-    alpha = gap/L
-    cc = Point(p.x+alpha*dx, p.y+alpha*dy, p.z+alpha*dz)
-    cylNum= 1000*p1 + p2
-    if isTrue(listIt):
-        print (f'Make {cyl}  L {L:2.2f}  {cName}')
-    yAngle = round((pi/2 - asin(dz/L)) * 180/pi, 2)
-    zAngle = round( atan2(dy, dx)      * 180/pi, 2)
-    diam = thickLet(thix)
-    fout.write(f'    oneCyl({p1}, {p2}, {diam}, {L-2*gap}, {yAngle}, {zAngle}, {cc}, {pp.foot}, {cName});\n')
-    return p1, p2
             
 def writeCylinders(fout, clo, chi, listIt):
     fout.write('\n//  oneCyl (p1,2,cylDiam,cylLen,yAngle,zAngle,  c xyz,  e xyz, cColor)\n')
-    for c in range(clo, chi):
-        oneCyl(LO.cyls[c], listIt)
+    posts = LO.posts
+    nPosts = len(posts)
+    for nCyl in range(clo, chi):
+        cyl = LO.cyls[nCyl]     # Draw this cylinder
+        post1, post2, lev1, lev2, colo, thix, gap, data, num = cyl.get9()
+        gap = SF*gap            # gap needs scaling
+        p1, p2 = min(post1,nPosts-1), min(post2,nPosts-1)
+        pp, qq = posts[p1], posts[p2]
+        p = levelAt(lev1, pp)
+        q = levelAt(lev2, qq)
+        dx, dy, dz = q.diff(p)
+        L = round(max(0.1, sssq(dx,  dy,  dz)), 2)
+        cName = colorSet[colo]
+        alpha = gap/L
+        cc = Point(p.x+alpha*dx, p.y+alpha*dy, p.z+alpha*dz)
+        cylNum= 1000*p1 + p2
+        if isTrue(listIt):
+            print (f'Make {cyl}  L {L:2.2f}  {cName}')
+        yAngle = round((pi/2 - asin(dz/L)) * 180/pi, 2)
+        zAngle = round( atan2(dy, dx)      * 180/pi, 2)
+        diam = thickLet(thix)
+        fout.write(f'    oneCyl({p1}, {p2}, {diam}, {L-2*gap}, {yAngle}, {zAngle}, {cc}, {pp.foot}, {cName});\n')
+
 #-------------------------------------------------------------
 def autoAdder(fout):    # See if we need to auto-add cylinders
     cutoff = autoMax

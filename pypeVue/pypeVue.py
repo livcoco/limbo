@@ -392,7 +392,11 @@ def writeCylinders(fout, clo, chi, listIt):
         post1, post2, lev1, lev2, colo, thix, gap, data, num = cyl.get9()
         gap = SF*gap            # gap needs scaling
         p1, p2 = min(post1,nPosts-1), min(post2,nPosts-1)
-        pp, qq = posts[p1], posts[p2]
+        try:
+            pp, qq = posts[p1], posts[p2]
+        except:
+            print (f'Fatal Error with p1= {p1},   p2= {p2},  nPosts {nPosts}')
+            exit(0)
         p = levelAt(lev1, pp)
         q = levelAt(lev2, qq)
         dx, dy, dz = q.diff(p)

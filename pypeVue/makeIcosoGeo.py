@@ -33,24 +33,20 @@ def dedup(layi, layo):
     pprev = Point(9e9, 8e8, 7e7);  eps = 0.001
     for n, p in enumerate(L): p.dex = n
     
-    transi = {}
+    transi = {} # Make node-number translation table for merged points
     for p in sorted(L):
         if ssq(*(p.diff(pprev))) > eps:
             layo.posts.append(p)
         transi[p.dex] = len(layo.posts)-1
         pprev = p
 
-    print ('edges in:', sorted([(k,layi.edgeList[k]) for k in layi.edgeList.keys()]))
-    print ('transi: ', sorted([(k,transi[k]) for k in transi.keys()]))
+    # Translate all edge numbers in the edgeList to merge points
     el = layi.edgeList
-    layo.edgeList = {}          # debug!!
     for i in el.keys():
         v = transi[i]
-        print (f'{i:4} -> {v} for {el[i]}')
         for j in el[i]:
             w = transi[j]
             addEdges(v, w, layo)
-    print ('edges out:', sorted([(len(layo.edgeList[k]), k, layo.edgeList[k]) for k in layo.edgeList.keys()]))
 
 def genIcosahedron(layin, Vfreq, zMin):
     '''Generate points and edges for icosahedral faces having corners
@@ -68,27 +64,27 @@ def genIcosahedron(layin, Vfreq, zMin):
         pn = len(laylo.posts)
         if min(p.z, q.z, r.z) >= zMin:
             genTriangleK (laylo, Vfreq, p, q, r, pn)
-            print (f'Have {len(laylo.posts):3} posts after face {i}{j}{k}')
+            print (f'=   {len(laylo.posts):3} posts after face {i}{j}{k}')
     dedup(laylo, layin)     # Dedup laylo and copy points into layin
+    print (f'=   {len(layin.posts):3} posts after dedup')
 
 for Vfreq in (4,):
-    zMin = 0.5
-    print (f'Vfreq {Vfreq},  zMin {zMin}')
+    zMin = -0.1
+    print (f'=  Vfreq {Vfreq},  zMin {zMin}')
     LO = Layout(posts=[], cyls=[],  edgeList={})    # Init an empty layout
     genIcosahedron(LO, Vfreq, zMin)
+
+    print (f'=  Writing {len(LO.posts)} post coordinates')
+    print ('=P postAxial=f  pDiam=.05  endGap=0 postHi=.05 postDiam=.05 ')
+    print ('=L O 0,0,0; C ', end='')
     for p in LO.posts:
-        print (f'{p.x:11.8f} {p.y:11.8f} {p.z:11.8f}  {p.dex}')
-    print (LO.edgeList)
-    
-phi = (1+sqrt(5))/2
-v0 = Point(0,   1,   phi)
-v1 = Point(1,   phi, 0  )
-v2 = Point(phi, 0,   1  )
-for k in (4,5):
-    if k>2: continue
-    LO = Layout(posts=[], cyls=[],  edgeList={})    # Init an empty layout
-    print (f'\nk = {k}')
-    genTriangleK (k, v0, v1, v2, 0);
-    for p in sorted(LO.posts):
-        print (f'{p.x:11.8f} {p.y:11.8f} {p.z:11.8f}')
-    print (LO.edgeList)
+        print (f'  {p.x:0.4f},{p.y:0.4f},{p.z:0.4}', end='')
+    print (';\n=C  Mpaa')
+    out = 0
+    for j in LO.edgeList.keys():
+        for k in LO.edgeList[j]:
+            print (f' {j:2} {k:2};', end='')
+            out += 1
+            if out%11 == 0: print()
+    print()
+    print (f'=  Wrote {out} cylinders')

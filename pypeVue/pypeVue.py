@@ -79,6 +79,8 @@ class Point:
         return f'{x}, {y}, {z}'
     def __str__( self):  return self.str(2)
     def __repr__(self):  return self.str(8)
+    def __lt__(a, b):
+        return (a.x < b.x) or (a.x == b.x and a.y < b.y) or (a.x == b.x and a.y == b.y and a.z <= b.z)
 
 class Post:
     def __init__(self, foot, top=0, diam=0, hite=0, yAngle=0, zAngle=0, num=0, data=0):
@@ -165,14 +167,15 @@ def thickLet(thix):
         expo = max(0, ord(thix)-ord('q'))
         return round(SF * qDiam * pow(dRatio,expo), 2)
 
-def addEdge(v,w):
-    edgeList = LO.edgeList
-    if v in edgeList:
-        if w not in edgeList[v]:
-            edgeList[v].append(w)
+def addEdge(v,w, layout):
+    if v in layout.edgeList:
+        if w not in layout.edgeList[v]:
+            layout.edgeList[v].append(w)
     else:
-        edgeList[v] = [w]
+        layout.edgeList[v] = [w]
 
+def addEdges(v,w, layout):
+    addEdge(v,w,layout); addEdge(w,v,layout)
 #---------------------------------------------------------
 def generatePosts(code, numberTexts):
     '''Modify layout LO according to provided code and numbers'''
@@ -291,8 +294,7 @@ def scriptCyl(ss, preCyl):
             num = len(LO.cyls)
             cyl = Cylinder(p1, p2, lev1, lev2, colo, thix, gap, 0, num)
             LO.cyls.append(cyl)
-            addEdge(p1, p2) # Add edges to edges list
-            addEdge(p2, p1)
+            addEdges(p1, p2, LO) # Add edges p1,p2 and p2,p1 to edges list
             nonPost = True
         pc = cc
     preCyl.put9(post1, post2, lev1, lev2, colo, thix, gap, nonPost, num)
@@ -431,6 +433,7 @@ def autoAdder(fout):    # See if we need to auto-add cylinders
                     post1, post2 = str(pn), str(qn)          
                     cyl = Cylinder(pn,qn, lev1, lev2, colo, thix, endGap, 0,0)
                     LO.cyls.append(cyl)
+                    addEdges(pn, qn, LO)
         writeCylinders(fout, clo, len(LO.cyls), autoList)
 #-------------------------------------------------------------
 def installParams(script):

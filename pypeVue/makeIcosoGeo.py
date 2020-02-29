@@ -17,7 +17,7 @@ def genTriangleK (layout, k, v0, v1, v2, pn):
     
     rbp = rb = pn+2; re = -1;  ro=0
     a,b,c = k, 0, 0;     pn=genPoint(a,b,c)
-    rbp = re = pn; rb = pn+1
+    rbp = re = pn; rb = pn
     for ro in range(1,1+k):
         a -= 1;  b += 1; pn=genPoint(a,b,c)
         e,f = b,c
@@ -67,14 +67,15 @@ def genIcosahedron(layin, Vfreq, zMin):
     dedup(laylo, layin)     # Dedup laylo and copy points into layin
     print (f'=   {len(layin.posts):3} posts after dedup')
 
-for Vfreq in (4,):
-    zMin = -0.1
+for Vfreq in (5,):
+    zMin = 0.5
+    zMin = -1.1
     print (f'=  Vfreq {Vfreq},  zMin {zMin}')
     LO = Layout(posts=[], cyls=[],  edgeList={})    # Init an empty layout
     genIcosahedron(LO, Vfreq, zMin)
 
     print (f'=  Writing {len(LO.posts)} post coordinates')
-    print ('=P postAxial=f  pDiam=.05  endGap=0 postHi=.05 postDiam=.05 ')
+    print ('=P postAxial=f  pDiam=.02  endGap=0 postHi=.05 postDiam=.04 ')
     print ('=L O 0,0,0; C ', end='')
     for p in LO.posts:
         print (f'  {p.x:0.4f},{p.y:0.4f},{p.z:0.4}', end='')

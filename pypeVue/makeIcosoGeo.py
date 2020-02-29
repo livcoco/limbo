@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# jiw - 29 Feb 2020
 from pypeVue import Point, Layout, ssq, sssq, addEdges
 from math import sqrt
 
@@ -10,10 +10,8 @@ def genTriangleK (layout, k, v0, v1, v2, pn):
         z = (p*v0.z + q*v1.z + r*v2.z)/k
         t = sssq(x,y,z)         # t = distance to origin
         layout.posts.append(Point(x/t,y/t,z/t))
-        if pn-ro <= re:  addEdges(pn, pn-ro,   layout)
-        
-        if pn-ro > rbp:  addEdges(pn, pn-ro-1, layout)
-        
+        if pn-ro <= re:  addEdges(pn, pn-ro,   layout)        
+        if pn-ro > rbp:  addEdges(pn, pn-ro-1, layout)        
         if pn    >  rb:  addEdges(pn, pn-1,    layout)
         return pn+1
     
@@ -50,12 +48,13 @@ def dedup(layi, layo):
 
 def genIcosahedron(layin, Vfreq, zMin):
     '''Generate points and edges for icosahedral faces having corners
-    above the plane z=zMin, with faces triangulated at frequency Vfreq '''
+    above the plane z=zMin, with faces triangulated at frequency Vfreq.
+    Ref: "Geodesic Domes", by Tom Davis - a pdf file - pp. 5-10 '''
     phi = (1+sqrt(5))/2
-    icoCornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'
+    cornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'
     facesNote = 'aij ajf afb abe aei bfk bkl ble cdh chl clk ckg cgd dgj dji dih dji dih elh ehi fjg fgk'
     corr1 = {'o':0, 'i':1, 'j':-1, 'p':phi, 'q':-phi}
-    corners = [Point(corr1[i], corr1[j], corr1[k]) for i,j,k in icoCornerNote.split()]
+    corners = [Point(corr1[i], corr1[j], corr1[k]) for i,j,k in cornerNote.split()]
     oa = ord('a')
     # Init an empty layout for local use (ie before deduplication)    
     laylo = Layout(posts=[], cyls=[],  edgeList={})

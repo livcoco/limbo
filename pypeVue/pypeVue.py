@@ -79,8 +79,8 @@ class Point:
         return f'{x}, {y}, {z}'
     def __str__( self):  return self.str(2)
     def __repr__(self):  return self.str(8)
-    def __lt__(a, b):
-        return (a.x < b.x) or (a.x == b.x and a.y < b.y) or (a.x == b.x and a.y == b.y and a.z <= b.z)
+    def __lt__(a, b):           # To sort points in z, y, x order
+        return (a.z < b.z) or (a.z == b.z and a.y < b.y) or (a.z == b.z and a.y == b.y and a.x <= b.x)
 
 class Post:
     def __init__(self, foot, top=0, diam=0, hite=0, yAngle=0, zAngle=0, num=0, data=0):
@@ -469,7 +469,7 @@ def loadScriptFile(fiName):   # Read scripts from file
 if __name__ == '__main__':
     colors, levels = 'GYRBCMW',  'abcde'
     thixx,  digits = 'pqrstuvw', '01234356789'
-    colorSet = dict({'G':'"Green"', 'Y':'"Yellow"', 'R':'"Red"', 'B':'"Blue"', 'C':'"Cyan"', 'M':'"Magenta"', 'W':'"White"'})   
+    colorSet = {'G':'"Green"', 'Y':'"Yellow"', 'R':'"Red"', 'B':'"Blue"', 'C':'"Cyan"', 'M':'"Magenta"', 'W':'"White"'}   
 
     # Set initial values of main parameters
     pDiam,   qDiam,    dRatio   = 0.06, 0.02, sqrt(2)

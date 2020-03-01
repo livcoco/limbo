@@ -11,7 +11,7 @@
 #       ./makeIcosaGeo.py > t1-v; ./pypeVue.py f=t1-v
 
 from pypeVue import Point, Layout, ssq, sssq, addEdges
-from math import sqrt, pi, sin, cos
+from math import sqrt, pi, asin, sin, cos
 
 def genTriangleK (layout, k, v0, v1, v2, pn):
     def genPoint(p, q, r):
@@ -121,12 +121,14 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
     dedupClip(laylo, layin, clip1, clip2)
     print (f'=  {len(layin.posts)} posts after dedup and clip')
 
-# This is a test loop for genIcosahedron
-for Vfreq in (2,):
-    clipLo = Point(-2,-2,0)
+# This is a test section for genIcosahedron
+phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
+yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
+for Vfreq in (3,):
     clipLo = Point(-2,-2,-2)
+    clipLo = Point(-2,-2,0)
+    clipLo = Point(-2,-2,-0.2)
     clipHi = Point(2,2,2)
-    yAngle, zAngle = 58.283, -18
     print (f'=  Vfreq {Vfreq},   yAngle {yAngle},  zAngle {zAngle}')
     print (f'=  Clip box corners = {clipLo} and {clipHi}')
     LO = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout

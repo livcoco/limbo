@@ -4,7 +4,7 @@
 # This is rough code for testing generation of geodesic dome point
 # coordinates and edges.  A z limit parameter allows rough control
 # over how much of the sphere is generated.  The orientation of
-# icosahedron needs to have an orientation control but doesn't.
+# the icosahedron needs to have an orientation control but doesn't.
 # At the moment, frequency and z limit are hardcoded, at about line
 # 72. To run an example, try eg:
 #       ./makeIcosoGeo.py > t1-v; ./pypeVue.py f=t1-v

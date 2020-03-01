@@ -11,7 +11,7 @@
 #       ./makeIcosaGeo.py > t1-v; ./pypeVue.py f=t1-v
 
 from pypeVue import Point, Layout, ssq, sssq, addEdges
-from math import sqrt, pi, asin, sin, cos
+from math import sqrt, pi, asin, sin, cos, atan2
 
 def genTriangleK (layout, k, v0, v1, v2, pn):
     def genPoint(p, q, r):
@@ -52,12 +52,15 @@ def pointInBox (p, clip1, clip2):
 def dedupClip(layi, layo, clip1, clip2):
     '''Given list of points via layi, return de-duplicated and clipped
     list etc'''
+    def CCW(p):
+        # Sort points by descending z and clockwise about z
+        return -round(p.z*1000)-atan2(p.y,p.x)/(2*pi)
     L  = layi.posts
     pprev = Point(9e9, 8e8, 7e7);  eps = 0.001
     for n, p in enumerate(L): p.dex = n
-    
+    L.sort(key=CCW)
     transi = {} # Make node-number translation table for merged points
-    for p in sorted(L):
+    for p in L:
         me = p.dex; del p.dex
         if pointInBox (p, clip1, clip2):
             if ssq(*(p.diff(pprev))) > eps:
@@ -84,7 +87,12 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
     by rz degrees. Use genTriangleK to triangulate feasible faces at
     frequency Vfreq.  Use dedupClip to discard corners outside of box
     clip1, clip2.  Ref: "Geodesic Domes", by Tom Davis - a pdf file -
-    pp. 5-10    '''
+    pp. 5-10 ; and note, "The vertices of an icosahedron centered at
+    the origin with an edge-length of 2 and a circumradius of sqrt(phi
+    +2) ~ 1.9 are described by circular permutations of (0, ±1, ±ϕ)
+    where ϕ = 1 + √5/2 is the golden ratio", from
+    https://en.wikipedia.org/wiki/Regular_icosahedron#Cartesian_coordinates
+    '''
     phi = (1+sqrt(5))/2
     cornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'
     facesNote = 'aij ajf afb abe aei bfk bkl ble cdh chl clk ckg cgd dgj dji dih dji dih elh ehi fjg fgk'

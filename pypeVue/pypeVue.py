@@ -72,6 +72,8 @@ class Point:
     def scalexy(self, s):
         self.x = s*self.x
         self.y = s*self.y
+    def inner(self, q):         # Inner product of two 3-vectors
+        return (self.x*q.x + self.y*q.y + self.z*q.z)
     def diff(self, q):
         return (self.x-q.x, self.y-q.y, self.z-q.z)
     def str(self, places):

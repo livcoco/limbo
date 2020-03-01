@@ -7,10 +7,10 @@
 # the icosahedron needs to have an orientation control but doesn't.
 # At the moment, frequency and z limit are hardcoded, at about line
 # 72. To run an example, try eg:
-#       ./makeIcosoGeo.py > t1-v; ./pypeVue.py f=t1-v
+#       ./makeIcosaGeo.py > t1-v; ./pypeVue.py f=t1-v
 
 from pypeVue import Point, Layout, ssq, sssq, addEdges
-from math import sqrt
+from math import sqrt, pi, sin, cos
 
 def genTriangleK (layout, k, v0, v1, v2, pn):
     def genPoint(p, q, r):
@@ -33,13 +33,16 @@ def genTriangleK (layout, k, v0, v1, v2, pn):
         for co in range(ro):
             e -= 1;  f += 1; pn=genPoint(a,e,f)
         rbp = rb; re = pn-1; rb = pn
+
+def pointInBox (p, clip1, clip2):
+    xlo, xhi = min(clip1.x, clip2.x), max(clip1.x, clip2.x)
+    ylo, yhi = min(clip1.y, clip2.y), max(clip1.y, clip2.y)
+    zlo, zhi = min(clip1.z, clip2.z), max(clip1.z, clip2.z)
+    return xlo <= p.x <= xhi and ylo <= p.y <= yhi and zlo <= p.z <=zhi
     
 def dedupClip(layi, layo, clip1, clip2):
     '''Given list of points via layi, return de-duplicated and clipped
     list etc'''
-    xlo, xhi = min(clip1.x, clip2.x), max(clip1.x, clip2.x)
-    ylo, yhi = min(clip1.y, clip2.y), max(clip1.y, clip2.y)
-    zlo, zhi = min(clip1.z, clip2.z), max(clip1.z, clip2.z)
     L  = layi.posts
     pprev = Point(9e9, 8e8, 7e7);  eps = 0.001
     for n, p in enumerate(L): p.dex = n
@@ -47,7 +50,7 @@ def dedupClip(layi, layo, clip1, clip2):
     transi = {} # Make node-number translation table for merged points
     for p in sorted(L):
         me = p.dex; del p.dex
-        if xlo<=p.x<=xhi and ylo<=p.y<=yhi and zlo<=p.z<=zhi:
+        if pointInBox (p, clip1, clip2):
             if ssq(*(p.diff(pprev))) > eps:
                 layo.posts.append(p)
             transi[me] = len(layo.posts)-1
@@ -66,42 +69,62 @@ def dedupClip(layi, layo, clip1, clip2):
             w = transi[j]
             addEdges(v, w, layo)
 
-def genIcosahedron(layin, Vfreq, zMin):
-    '''Generate points and edges for icosahedral faces having corners
-    above the plane z=zMin, with faces triangulated at frequency Vfreq.
-    Ref: "Geodesic Domes", by Tom Davis - a pdf file - pp. 5-10 '''
+def genIcosahedron(layin, Vfreq, zMin, clip1, clip2, rotay, rotaz):
+    '''Generate points and edges for triangulated icosahedral faces with
+    developed corners in the box with corners co1, co2; with faces
+    triangulated at frequency Vfreq; and with basic icosahedron faces
+    rotated about x by rx, about y by ry, and about z by rz degrees.
+    Ref: "Geodesic Domes", by Tom Davis - a pdf file - pp. 5-10    '''
     phi = (1+sqrt(5))/2
     cornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'
     facesNote = 'aij ajf afb abe aei bfk bkl ble cdh chl clk ckg cgd dgj dji dih dji dih elh ehi fjg fgk'
     corr1 = {'o':0, 'i':1, 'j':-1, 'p':phi, 'q':-phi}
     corners = [Point(corr1[i], corr1[j], corr1[k]) for i,j,k in cornerNote.split()]
+    # Rotate corners by rz, ry degrees. See:
+    # https://en.wikipedia.org/wiki/Rotation_matrix#General_rotations
+    DtoR = pi/180;   ry, rz = rotay*DtoR, rotaz*DtoR
+    sa, ca, sb, cb = sin(rz), cos(rz), sin(ry), cos(ry)
+    rox = Point(ca*cb,  -sa,  ca*sb)
+    roy = Point(sa*cb,   ca,  sa*sb)
+    roz = Point(-sb,      0,  cb)
     oa = ord('a')
     # Init an empty layout for local use (ie before deduplication)    
     laylo = Layout(posts=[], cyls=[],  edgeList={})
     for i,j,k in facesNote.split():
-        p,q,r = corners[ord(i)-oa], corners[ord(j)-oa], corners[ord(k)-oa]
-        pn = len(laylo.posts)
-        if min(p.z, q.z, r.z) >= zMin:
+        pp, qq, rr = corners[ord(i)-oa], corners[ord(j)-oa], corners[ord(k)-oa]
+        p = Point(rox.inner(pp), roy.inner(pp), roz.inner(pp))
+        q = Point(rox.inner(qq), roy.inner(qq), roz.inner(qq))
+        r = Point(rox.inner(rr), roy.inner(rr), roz.inner(rr))
+        # Now to triangulate this face if *any* of its subtriangles
+        # overlaps box.  (However, if box & face intersection is
+        # strictly inside the face we mess up and don't process it.)
+        if pointInBox(p,clip1,clip2) or pointInBox(q,clip1,clip2) or pointInBox(r,clip1,clip2):
+            pn = len(laylo.posts)
             genTriangleK (laylo, Vfreq, p, q, r, pn)
             print (f'=   {len(laylo.posts):3} posts after face {i}{j}{k}')
-    # Dedup laylo and copy points into layin
-    dedupClip(laylo, layin, Point(-.23,-1,-.23), Point(1,1,1))
-    print (f'=   {len(layin.posts):3} posts after dedup')
+        else:            
+            print (f'=   {len(laylo.posts):3} posts after face {i}{j}{k} skipped')
+    # Have done all faces.  Now dedup & clip laylo and copy points into layin
+    print (f'=  {len(laylo.posts)} posts before dedup and clip')
+    dedupClip(laylo, layin, clip1, clip2)
+    print (f'=  {len(layin.posts)} posts after dedup and clip')
 
 for Vfreq in (5,):
     zMin = 0.5
     zMin = -1.1
     print (f'=  Vfreq {Vfreq},  zMin {zMin}')
     LO = Layout(posts=[], cyls=[],  edgeList={})    # Init an empty layout
-    genIcosahedron(LO, Vfreq, zMin)
+    clipLo = Point(-2,-2,0)
+    clipHi = Point(2,2,2)
+    genIcosahedron(LO, Vfreq, zMin, clipLo, clipHi, 58.3, -18)
 
     print (f'=  Writing {len(LO.posts)} post coordinates')
     print ('=P  endGap=0 postAxial=f postLabel=f  pDiam=.01  endGap=0  postHi=.02 postDiam=.01 ')
     print ('=L O 0,0,0; C ', end='')
     for p in LO.posts:
         print (f'  {p.x:0.4f},{p.y:0.4f},{p.z:0.4}', end='')
-    print (';\n=C  Mpaa')
-    print ("=A gg['endGap']=0")
+    print (";\n=A gg['endGap']=0")
+    print ('=C  Mpaa')
     out = 0
     for j in LO.edgeList.keys():
         for k in LO.edgeList[j]:

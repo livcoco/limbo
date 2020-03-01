@@ -2,11 +2,12 @@
 # jiw - 29 Feb 2020
 
 # This is rough code for testing generation of geodesic dome point
-# coordinates and edges.  A z limit parameter allows rough control
-# over how much of the sphere is generated.  The orientation of
-# the icosahedron needs to have an orientation control but doesn't.
-# At the moment, frequency and z limit are hardcoded, at about line
-# 72. To run an example, try eg:
+# coordinates and edges.  Clipping-box parameters allow some control
+# over how much of the sphere is generated.  The orientation of the
+# icosahedron has two controls: z angle and y angle rotation.  At
+# present, frequency, limits, and angles are hardcoded, near line 114.
+# To see an example, try eg:
+
 #       ./makeIcosaGeo.py > t1-v; ./pypeVue.py f=t1-v
 
 from pypeVue import Point, Layout, ssq, sssq, addEdges
@@ -23,7 +24,14 @@ def genTriangleK (layout, k, v0, v1, v2, pn):
         if pn-ro > rbp:  addEdges(pn, pn-ro-1, layout)        
         if pn    >  rb:  addEdges(pn, pn-1,    layout)
         return pn+1
-    
+
+    # Triangulate the face with corners v0,v1,v2; stepping row by row
+    # from point v0 toward v1 (hence decreasing a, increasing b), and
+    # in each row stepping across from the v0-v1 side toward the v0-v2
+    # side (hence decreasing e, increasing f).  Neighbor tracking
+    # looks to the left and looks up both left and right.  rb tracks
+    # beginning of current row.  rbp and re track beginning and end of
+    # previous row.
     rbp = rb = pn+2; re = -1;  ro=0
     a,b,c = k, 0, 0;     pn=genPoint(a,b,c)
     rbp = re = pn; rb = pn
@@ -34,12 +42,13 @@ def genTriangleK (layout, k, v0, v1, v2, pn):
             e -= 1;  f += 1; pn=genPoint(a,e,f)
         rbp = rb; re = pn-1; rb = pn
 
+# See if point p is in box with corners given by elements of clip1, clip2
 def pointInBox (p, clip1, clip2):
     xlo, xhi = min(clip1.x, clip2.x), max(clip1.x, clip2.x)
     ylo, yhi = min(clip1.y, clip2.y), max(clip1.y, clip2.y)
     zlo, zhi = min(clip1.z, clip2.z), max(clip1.z, clip2.z)
     return xlo <= p.x <= xhi and ylo <= p.y <= yhi and zlo <= p.z <=zhi
-    
+
 def dedupClip(layi, layo, clip1, clip2):
     '''Given list of points via layi, return de-duplicated and clipped
     list etc'''
@@ -70,11 +79,12 @@ def dedupClip(layi, layo, clip1, clip2):
             addEdges(v, w, layo)
 
 def genIcosahedron(layin, Vfreq, zMin, clip1, clip2, rotay, rotaz):
-    '''Generate points and edges for triangulated icosahedral faces with
-    developed corners in the box with corners co1, co2; with faces
-    triangulated at frequency Vfreq; and with basic icosahedron faces
-    rotated about x by rx, about y by ry, and about z by rz degrees.
-    Ref: "Geodesic Domes", by Tom Davis - a pdf file - pp. 5-10    '''
+    '''Generate points and edges for triangulated icosahedral faces.
+    Rotate basic icosahedron faces about y by ry degrees, and about z
+    by rz degrees. Use genTriangleK to triangulate feasible faces at
+    frequency Vfreq.  Use dedupClip to discard corners outside of box
+    clip1, clip2.  Ref: "Geodesic Domes", by Tom Davis - a pdf file -
+    pp. 5-10    '''
     phi = (1+sqrt(5))/2
     cornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'
     facesNote = 'aij ajf afb abe aei bfk bkl ble cdh chl clk ckg cgd dgj dji dih dji dih elh ehi fjg fgk'
@@ -85,19 +95,21 @@ def genIcosahedron(layin, Vfreq, zMin, clip1, clip2, rotay, rotaz):
     DtoR = pi/180;   ry, rz = rotay*DtoR, rotaz*DtoR
     sa, ca, sb, cb = sin(rz), cos(rz), sin(ry), cos(ry)
     rox = Point(ca*cb,  -sa,  ca*sb)
-    roy = Point(sa*cb,   ca,  sa*sb)
-    roz = Point(-sb,      0,  cb)
+    roy = Point(sa*cb,   ca,  sa*sb) # Set up x,y,z rows
+    roz = Point(-sb,      0,  cb)    #   of Z,Y rotation matrix
     oa = ord('a')
     # Init an empty layout for local use (ie before deduplication)    
     laylo = Layout(posts=[], cyls=[],  edgeList={})
+    # Now make faces, and triangulate those that look feasible
     for i,j,k in facesNote.split():
         pp, qq, rr = corners[ord(i)-oa], corners[ord(j)-oa], corners[ord(k)-oa]
+        # Rotate each of the pp, qq, rr faces in space by Z and Y degrees
         p = Point(rox.inner(pp), roy.inner(pp), roz.inner(pp))
         q = Point(rox.inner(qq), roy.inner(qq), roz.inner(qq))
         r = Point(rox.inner(rr), roy.inner(rr), roz.inner(rr))
-        # Now to triangulate this face if *any* of its subtriangles
-        # overlaps box.  (However, if box & face intersection is
-        # strictly inside the face we mess up and don't process it.)
+        # Now maybe triangulate this face if any of its corners are in
+        # box.  (When box & face intersection is strictly inside the
+        # face we mess up and don't process it.  Oh well.)
         if pointInBox(p,clip1,clip2) or pointInBox(q,clip1,clip2) or pointInBox(r,clip1,clip2):
             pn = len(laylo.posts)
             genTriangleK (laylo, Vfreq, p, q, r, pn)
@@ -109,14 +121,17 @@ def genIcosahedron(layin, Vfreq, zMin, clip1, clip2, rotay, rotaz):
     dedupClip(laylo, layin, clip1, clip2)
     print (f'=  {len(layin.posts)} posts after dedup and clip')
 
+# This is a test loop for genIcosahedron
 for Vfreq in (5,):
-    zMin = 0.5
-    zMin = -1.1
-    print (f'=  Vfreq {Vfreq},  zMin {zMin}')
-    LO = Layout(posts=[], cyls=[],  edgeList={})    # Init an empty layout
     clipLo = Point(-2,-2,0)
     clipHi = Point(2,2,2)
-    genIcosahedron(LO, Vfreq, zMin, clipLo, clipHi, 58.3, -18)
+    yAngle, zAngle = 58.3, -18
+    print (f'=  Vfreq {Vfreq},   yAngle {yAngle},  zAngle {zAngle}')
+    print (f'=  Clip box corners = {clipLo} and {clipHi}')
+    LO = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout
+    # At present, genIcosahedron reports about
+    # posts per face and about dedup/clip stats
+    genIcosahedron(LO, Vfreq, zMin, clipLo, clipHi, yAngle, zAngle)
 
     print (f'=  Writing {len(LO.posts)} post coordinates')
     print ('=P  endGap=0 postAxial=f postLabel=f  pDiam=.01  endGap=0  postHi=.02 postDiam=.01 ')

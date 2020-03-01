@@ -34,17 +34,28 @@ def genTriangleK (layout, k, v0, v1, v2, pn):
             e -= 1;  f += 1; pn=genPoint(a,e,f)
         rbp = rb; re = pn-1; rb = pn
     
-def dedup(layi, layo):
-    '''Given list of points via layi, return de-duplicated list etc'''
+def dedupClip(layi, layo, clip1, clip2):
+    '''Given list of points via layi, return de-duplicated and clipped
+    list etc'''
+    xlo, xhi = min(clip1.x, clip2.x), max(clip1.x, clip2.x)
+    ylo, yhi = min(clip1.y, clip2.y), max(clip1.y, clip2.y)
+    zlo, zhi = min(clip1.z, clip2.z), max(clip1.z, clip2.z)
     L  = layi.posts
     pprev = Point(9e9, 8e8, 7e7);  eps = 0.001
     for n, p in enumerate(L): p.dex = n
     
     transi = {} # Make node-number translation table for merged points
     for p in sorted(L):
-        if ssq(*(p.diff(pprev))) > eps:
-            layo.posts.append(p)
-        transi[p.dex] = len(layo.posts)-1
+        me = p.dex; del p.dex
+        if xlo<=p.x<=xhi and ylo<=p.y<=yhi and zlo<=p.z<=zhi:
+            if ssq(*(p.diff(pprev))) > eps:
+                layo.posts.append(p)
+            transi[me] = len(layo.posts)-1
+        else:          # p is out-of-box; remove its edge evidence
+            nbrs = layi.edgeList[me]
+            for nbr in nbrs:    # Get rid of all refs to me
+                layi.edgeList[nbr].remove(me)
+            del layi.edgeList[me] # Get rid of me
         pprev = p
 
     # Translate all edge numbers in the edgeList to merge points
@@ -73,7 +84,8 @@ def genIcosahedron(layin, Vfreq, zMin):
         if min(p.z, q.z, r.z) >= zMin:
             genTriangleK (laylo, Vfreq, p, q, r, pn)
             print (f'=   {len(laylo.posts):3} posts after face {i}{j}{k}')
-    dedup(laylo, layin)     # Dedup laylo and copy points into layin
+    # Dedup laylo and copy points into layin
+    dedupClip(laylo, layin, Point(-.23,-1,-.23), Point(1,1,1))
     print (f'=   {len(layin.posts):3} posts after dedup')
 
 for Vfreq in (5,):
@@ -84,11 +96,12 @@ for Vfreq in (5,):
     genIcosahedron(LO, Vfreq, zMin)
 
     print (f'=  Writing {len(LO.posts)} post coordinates')
-    print ('=P postAxial=f  pDiam=.02  endGap=0 postHi=.05 postDiam=.04 ')
+    print ('=P  endGap=0 postAxial=f postLabel=f  pDiam=.01  endGap=0  postHi=.02 postDiam=.01 ')
     print ('=L O 0,0,0; C ', end='')
     for p in LO.posts:
         print (f'  {p.x:0.4f},{p.y:0.4f},{p.z:0.4}', end='')
     print (';\n=C  Mpaa')
+    print ("=A gg['endGap']=0")
     out = 0
     for j in LO.edgeList.keys():
         for k in LO.edgeList[j]:

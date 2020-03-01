@@ -477,7 +477,9 @@ if __name__ == '__main__':
 
     # Set initial values of main parameters
     pDiam,   qDiam,    dRatio   = 0.06, 0.02, sqrt(2)
-    endGap,  postHi,   postDiam = 0.03, 0.16, qDiam
+    #endGap,  postHi,   postDiam = 0.03, 0.16, qDiam
+    # *** debug issue: endGap not setting from params in file ***
+    endGap,  postHi,   postDiam = 0.007, 0.16, qDiam
     f,       SF,    cylSegments = '', 100, 30
     paramTxt, postLabel= '', 'Bte' # Blue, size u, level e
     userCode = ''

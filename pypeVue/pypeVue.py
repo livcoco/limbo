@@ -81,8 +81,8 @@ class Point:
         return f'{x}, {y}, {z}'
     def __str__( self):  return self.str(2)
     def __repr__(self):  return self.str(8)
-    def __lt__(a, b):           # To sort points in z, y, x order
-        return (a.z < b.z) or (a.z == b.z and a.y < b.y) or (a.z == b.z and a.y == b.y and a.x <= b.x)
+    def __lt__(a, b):     # To sort points in z, y, x descending order
+        return (a.z > b.z) or (a.z == b.z and a.y > b.y) or (a.z == b.z and a.y == b.y and a.x >= b.x)
 
 class Post:
     def __init__(self, foot, top=0, diam=0, hite=0, yAngle=0, zAngle=0, num=0, data=0):

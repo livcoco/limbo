@@ -142,8 +142,8 @@ for Vfreq in (2,):
     print (";\n=A gg['endGap']=0")
     print ('=C  Mpaa')
     out = 0
-    for j in LO.edgeList.keys():
-        for k in LO.edgeList[j]:
+    for j in sorted(LO.edgeList.keys()):
+        for k in sorted(LO.edgeList[j]):
             if j<k:             # Both of j,k and k,j are in the list
                 print (f' {j:2} {k:2};', end='')
                 out += 1

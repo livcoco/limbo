@@ -56,7 +56,8 @@ def dedupClip(layi, layo, clip1, clip2):
         # Sort points by descending z and clockwise about z
         return -round(p.z*1000)-atan2(p.y,p.x)/(2*pi)
     L  = layi.posts
-    pprev = Point(9e9, 8e8, 7e7);  eps = 0.001
+    eps = 0.00001   # Good enough for freq 36, where .001 is too big
+    pprev = Point(9e9, 8e8, 7e7)
     for n, p in enumerate(L): p.dex = n
     L.sort(key=CCW)
     transi = {} # Make node-number translation table for merged points
@@ -132,10 +133,10 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
 # This is a test section for genIcosahedron
 phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
 yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
-for Vfreq in (3,):
+for Vfreq in (36,):
     clipLo = Point(-2,-2,-2)
-    clipLo = Point(-2,-2,0)
-    clipLo = Point(-2,-2,-0.2)
+    clipLo = Point(-2,-2,-0.001)
+    #clipLo = Point(-2,-2,-0.2)
     clipHi = Point(2,2,2)
     print (f'=  Vfreq {Vfreq},   yAngle {yAngle},  zAngle {zAngle}')
     print (f'=  Clip box corners = {clipLo} and {clipHi}')

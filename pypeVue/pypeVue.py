@@ -79,10 +79,10 @@ class Point:
     def str(self, places):
         x,y,z = (round(k,places) for k in (self.x, self.y ,self.z))
         return f'{x}, {y}, {z}'
-    def __str__( self):  return self.str(2)
+    def __str__( self):  return self.str(3)
     def __repr__(self):  return self.str(8)
-    def __lt__(a, b):     # To sort points in z, y, x descending order
-        return (a.z > b.z) or (a.z == b.z and a.y > b.y) or (a.z == b.z and a.y == b.y and a.x >= b.x)
+    def __lt__(a, b):     # To sort points in x,y,z order
+        return (a.x < b.x) or (a.x == b.x and a.y < b.y) or (a.x == b.x and a.y == b.y and a.z <= b.z)
 
 class Post:
     def __init__(self, foot, top=0, diam=0, hite=0, yAngle=0, zAngle=0, num=0, data=0):
@@ -267,7 +267,7 @@ def postTop(p, OP):   # Given post location p, return loc. of post top
     siny = min(1, max(-1, (tz-z)/u)) # Don't let rounding error shut us down
     yAxisAngle = (pi/2 - asin(siny)) * 180/pi
     zAxisAngle =  atan2(ty-y, tx-x)  * 180/pi
-    return Point(round(tx,2), round(ty,2), round(tz,2)), round(yAxisAngle,2), round(zAxisAngle,2)
+    return Point(tx,ty,tz), round(yAxisAngle,2), round(zAxisAngle,2)
 
 #==================================
 def scriptCyl(ss, preCyl):
@@ -412,7 +412,7 @@ def writeCylinders(fout, clo, chi, listIt):
         yAngle = round((pi/2 - asin(dz/L)) * 180/pi, 2)
         zAngle = round( atan2(dy, dx)      * 180/pi, 2)
         diam = thickLet(thix)
-        fout.write(f'    oneCyl({p1}, {p2}, {diam}, {L-2*gap}, {yAngle}, {zAngle}, {cc}, {pp.foot}, {cName});\n')
+        fout.write(f'    oneCyl({p1}, {p2}, {diam}, {round(L-2*gap,3)}, {yAngle}, {zAngle}, {cc}, {pp.foot}, {cName});\n')
 
 #-------------------------------------------------------------
 def autoAdder(fout):    # See if we need to auto-add cylinders

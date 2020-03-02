@@ -130,34 +130,40 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
     dedupClip(laylo, layin, clip1, clip2)
     print (f'=  {len(layin.posts)} posts after dedup and clip')
 
-# This is a test section for genIcosahedron
-phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
-yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
-for Vfreq in (36,):
-    clipLo = Point(-2,-2,-2)
-    clipLo = Point(-2,-2,-0.001)
-    #clipLo = Point(-2,-2,-0.2)
-    clipHi = Point(2,2,2)
-    print (f'=  Vfreq {Vfreq},   yAngle {yAngle},  zAngle {zAngle}')
-    print (f'=  Clip box corners = {clipLo} and {clipHi}')
-    LO = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout
-    # At present, genIcosahedron reports about
-    # posts per face and about dedup/clip stats
-    genIcosahedron(LO, Vfreq, clipLo, clipHi, yAngle, zAngle)
+if __name__ == '__main__':
+    # This is a test section for genIcosahedron
+    phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
+    yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
+    for Vfreq in (27,):
+        clipLo = Point(-2,-2,-2)
+        clipLo = Point(-2,-2,-0.001)
+        #clipLo = Point(-2,-2,-0.2)
+        clipHi = Point(2,2,2)
+        print (f'=  Vfreq {Vfreq},   yAngle {yAngle},  zAngle {zAngle}')
+        print (f'=  Clip box corners = {clipLo} and {clipHi}')
+        LO = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout
+        # At present, genIcosahedron reports about
+        # posts per face and about dedup/clip stats
+        genIcosahedron(LO, Vfreq, clipLo, clipHi, yAngle, zAngle)
 
-    print (f'=  Writing {len(LO.posts)} post coordinates')
-    print ('=P  endGap=0 postAxial=f postLabel=f  pDiam=.01  endGap=0  postHi=.02 postDiam=.01 ')
-    print ('=L O 0,0,0; C ', end='')
-    for p in LO.posts:
-        print (f'  {p.x:0.5f},{p.y:0.5f},{p.z:0.5f}', end='')
-    print (";\n=A gg['endGap']=0")
-    print ('=C  Mpaa')
-    out = 0
-    for j in sorted(LO.edgeList.keys()):
-        for k in sorted(LO.edgeList[j]):
-            if j<k:             # Both of j,k and k,j are in the list
-                print (f' {j:2} {k:2};', end='')
-                out += 1
-                if out%11 == 0: print()
-    print()
-    print (f'=  Wrote {out} cylinders')
+        print (f'=  Writing {len(LO.posts)} post coordinates')
+        print ('=P  endGap=0 postAxial=f postLabel=f  pDiam=.01  endGap=0  postHi=.02 postDiam=.01 ')
+        print ('=L O 0,0,0;')
+        np = 0
+        for p in LO.posts:
+            if np%3==0: print (' C', end='')
+            print (f' {p.x:0.5f},{p.y:0.5f},{p.z:0.5f} ', end='')
+            np += 1
+            if np%3==0: print (';')
+        if np%4 !=0: print (';')
+        print (";\n=A gg['endGap']=0")
+        print ('=C  Mpaa')
+        out = 0
+        for j in sorted(LO.edgeList.keys()):
+            for k in sorted(LO.edgeList[j]):
+                if j<k:             # Both of j,k and k,j are in the list
+                    print (f' {j:2} {k:2};', end='')
+                    out += 1
+                    if out%11 == 0: print()
+        print()
+        print (f'=  Wrote {out} cylinders')

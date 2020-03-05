@@ -141,12 +141,7 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
     for p in po:
         for q in elo[p.num]:
             po[q].rank = min(po[q].rank, 1+p.rank)
-    for k,p in enumerate(po):
-        print(f'= {k:3}.  #{p.num:3}  r {p.rank:3}  fra {round(FRA(p),3):6}\t xyz {p}\t {elo[k] if k in elo else None} ')
-    dedupClip(2, laylo2, layin, clip1, clip2)
-    for k,p in enumerate(layin.posts):
-        print(f'= {k:3}.  #{p.num:3}  r {p.rank:3}  fra {round(FRA(p),3):6}\t xyz {p}')
-    
+    dedupClip(2, laylo2, layin, clip1, clip2)    
 
 if __name__ == '__main__':
     # This is a test section for genIcosahedron

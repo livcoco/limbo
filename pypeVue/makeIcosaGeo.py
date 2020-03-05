@@ -49,17 +49,19 @@ def pointInBox (p, clip1, clip2):
     zlo, zhi = min(clip1.z, clip2.z), max(clip1.z, clip2.z)
     return xlo <= p.x <= xhi and ylo <= p.y <= yhi and zlo <= p.z <=zhi
 
-def dedupClip(layi, layo, clip1, clip2):
+def CCW(p):    # Sort points by descending z and clockwise about z
+    return -round(p.z*1000)-atan2(p.y,p.x)/8
+def FRA(p):    # Sort points by rank from 0 and clockwise about z
+    return p.rank - atan2(p.y,p.x)/8
+
+def dedupClip(phase, layi, layo, clip1, clip2):
     '''Given list of points via layi, return de-duplicated and clipped
     list etc'''
-    def CCW(p):
-        # Sort points by descending z and clockwise about z
-        return -round(p.z*1000)-atan2(p.y,p.x)/(2*pi)
     L  = layi.posts
     eps = 0.00001   # Good enough for freq 36, where .001 is too big
     pprev = Point(9e9, 8e8, 7e7)
     for n, p in enumerate(L): p.dex = n
-    L.sort(key=CCW)
+    L.sort(key = CCW if phase==1 else FRA)
     transi = {} # Make node-number translation table for merged points
     for p in L:
         me = p.dex; del p.dex
@@ -107,8 +109,9 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
     roy = Point(sa*cb,   ca,  sa*sb) # Set up x,y,z rows
     roz = Point(-sb,      0,  cb)    #   of Z,Y rotation matrix
     oa = ord('a')
-    # Init an empty layout for local use (ie before deduplication)    
-    laylo = Layout(posts=[], cyls=[],  edgeList={})
+    # Init empty layouts for local use (ie before deduplication)
+    laylo1 = Layout(posts=[], cyls=[],  edgeList={})
+    laylo2 = Layout(posts=[], cyls=[],  edgeList={})
     # Now make faces, and triangulate those that look feasible
     for i,j,k in facesNote.split():
         pp, qq, rr = corners[ord(i)-oa], corners[ord(j)-oa], corners[ord(k)-oa]
@@ -120,21 +123,36 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
         # box.  (When box & face intersection is strictly inside the
         # face we mess up and don't process it.  Oh well.)
         if pointInBox(p,clip1,clip2) or pointInBox(q,clip1,clip2) or pointInBox(r,clip1,clip2):
-            pn = len(laylo.posts)
-            genTriangleK (laylo, Vfreq, p, q, r, pn)
-            print (f'=   {len(laylo.posts):3} posts after face {i}{j}{k}')
+            pn = len(laylo1.posts)
+            genTriangleK (laylo1, Vfreq, p, q, r, pn)
+            print (f'=   {len(laylo1.posts):3} posts after face {i}{j}{k}')
         else:            
-            print (f'=   {len(laylo.posts):3} posts after face {i}{j}{k} skipped')
+            print (f'=   {len(laylo1.posts):3} posts after face {i}{j}{k} skipped')
     # Have done all faces.  Now dedup & clip laylo and copy points into layin
-    print (f'=  {len(laylo.posts)} posts before dedup and clip')
-    dedupClip(laylo, layin, clip1, clip2)
-    print (f'=  {len(layin.posts)} posts after dedup and clip')
+    print (f'=  {len(laylo1.posts)} posts before dedup and clip')
+    dedupClip(1, laylo1, laylo2, clip1, clip2)
+    print (f'=  {len(laylo2.posts)} posts after dedup and clip')
+    
+    # Find ranks, or number of rows down from rank-0 center point.
+    po = laylo2.posts; elo = laylo2.edgeList
+    for k,p in enumerate(po):
+        p.rank=Vfreq*20; p.num=k
+    po[0].rank = 0
+    for p in po:
+        for q in elo[p.num]:
+            po[q].rank = min(po[q].rank, 1+p.rank)
+    for k,p in enumerate(po):
+        print(f'= {k:3}.  #{p.num:3}  r {p.rank:3}  fra {round(FRA(p),3):6}\t xyz {p}\t {elo[k] if k in elo else None} ')
+    dedupClip(2, laylo2, layin, clip1, clip2)
+    for k,p in enumerate(layin.posts):
+        print(f'= {k:3}.  #{p.num:3}  r {p.rank:3}  fra {round(FRA(p),3):6}\t xyz {p}')
+    
 
 if __name__ == '__main__':
     # This is a test section for genIcosahedron
     phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
     yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
-    for Vfreq in (27,):
+    for Vfreq in (4,):
         clipLo = Point(-2,-2,-2)
         clipLo = Point(-2,-2,-0.001)
         #clipLo = Point(-2,-2,-0.2)

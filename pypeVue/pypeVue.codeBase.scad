@@ -9,8 +9,8 @@
 //     userPar0=`userPar0`; // userPar items are verbatim so can
 //     userPar1=`userPar1`; // be of any type needed, eg 123, 13.5,
 //     userPar2=`userPar2`; // "xyz" etc, if properly quoted or not
-//     use <`userCode`>
-//     include <`codebase`>
+//     use <`codebase`>     // Gets commented out if no codebase
+//     include <`userCode`> // Gets commented out if no userCode
 //     difference() {
 //       union() {
 //         `Sequence of onePost/oneLabel/oneCyl calls`
@@ -41,30 +41,26 @@ module subOff (SF=0, Bx=0, By=0, Bz=0, Ox=0, Oy=0, Oz=0) {
 }
 
 module onePost (postNum=0, postDiam=0, postHi=0, yAngle=0, zAngle=0,
-                px=0, py=0, pz=0, tx=0, ty=0, tz=0) {
-  translate (v=[px, py, pz]) {
-    rotate(a=[0, yAngle, zAngle]) {
+                px=0, py=0, pz=0, tx=0, ty=0, tz=0)
+  translate (v=[px, py, pz])
+    rotate(a=[0, yAngle, zAngle])
       cylinder(d=postDiam, h=postHi);
-      }
-  }
-}
+
 module oneLabel (postNum=0, postDiam=0, postHi=0, yAngle=0, zAngle=0,
                  px=0, py=0, pz=0, lx=0, ly=0, lz=0, tColor=0, tSize=0, txt) {
   cc = postDiam/3;
   // One can change lz+cc to lz if z offset isn't wanted.
-  translate (v=[lx+cc, ly+cc, lz+cc]) {
-    color(c=tColor) {
-      text(size=tSize, text=txt);
+  color(c=tColor)
+    translate (v=[lx+cc, ly+cc, lz+cc]) {
+      //rotate([90-asin(lz/sqrt(lx*lx+ly*ly+lz*lz)), 0,0])
+    rotate([0, yAngle, 0])
+        text(size=tSize, text=txt);
     }
-  }
 }
+
 module oneCyl (p1=0, p2=0, cylDiam=0, cylLen=0, yAngle=0, zAngle=0,
-               cx=0, cy=0, cz=0, ex=0, ey=0, ez=0, cColor="Blue") {
-  translate (v=[cx, cy, cz]) {
-    rotate(a=[0, yAngle, zAngle]) {
-      color(c=cColor) {
+               cx=0, cy=0, cz=0, ex=0, ey=0, ez=0, cColor="Blue")
+  translate (v=[cx, cy, cz])
+    color(c=cColor) 
+      rotate(a=[0, yAngle, zAngle])
         cylinder(d=cylDiam, h=cylLen);
-      }
-    }
-  }
-}

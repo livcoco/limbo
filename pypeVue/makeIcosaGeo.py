@@ -134,20 +134,25 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
     print (f'=  {len(laylo2.posts)} posts after dedup and clip')
     
     # Find ranks, or number of rows down from rank-0 center point.
-    po = laylo2.posts; elo = laylo2.edgeList
+    po = laylo2.posts; elo = laylo2.edgeList;  infin = Vfreq*20
     for k,p in enumerate(po):
-        p.rank=Vfreq*20; p.num=k
+        p.num=k;   p.pa = p.pb = p.rank = infin  # Set stuff large
     po[0].rank = 0
     for p in po:
-        for q in elo[p.num]:
-            po[q].rank = min(po[q].rank, 1+p.rank)
+        p.nnbrs = len(elo[p.num])
+        for dq in elo[p.num]:
+            q = po[dq]
+            if 1+p.rank < q.rank: # Is p the new pop of q?
+                q.pa, q.pb, q.rank = p, p, 1+p.rank
+            elif p.rank < q.rank: # Is p the new mom of q?
+                q.pb = p
     dedupClip(2, laylo2, layin, clip1, clip2)    
 
 if __name__ == '__main__':
     # This is a test section for genIcosahedron
     phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
     yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
-    for Vfreq in (4,):
+    for Vfreq in (3,):
         clipLo = Point(-2,-2,-2)
         clipLo = Point(-2,-2,-0.001)
         #clipLo = Point(-2,-2,-0.2)
@@ -169,14 +174,23 @@ if __name__ == '__main__':
             np += 1
             if np%3==0: print (';')
         if np%4 !=0: print (';')
+        lopo = LO.posts;  loel = LO.edgeList
         print (";\n=A gg['endGap']=0")
-        print ('=C  Mpaa')
-        out = 0
-        for j in sorted(LO.edgeList.keys()):
-            for k in sorted(LO.edgeList[j]):
-                if j<k:             # Both of j,k and k,j are in the list
-                    print (f' {j:2} {k:2};', end='')
-                    out += 1
-                    if out%11 == 0: print()
-        print()
-        print (f'=  Wrote {out} cylinders')
+        # Generate sets of cylinders in various colors.
+        for co in ('Y', 'B', 'R'):
+            print (f'=C  {co}paa')
+            out = 0
+            for j in sorted(loel.keys()):
+                for k in sorted(loel[j]):
+                    if j<k:   # Both of j,k and k,j are in the list
+                        oB = lopo[j].rank == lopo[k].rank
+                        oY = lopo[j].nnbrs==5 or lopo[k].nnbrs==5
+                        oR = not (oB or oY)
+                        # Note, level spokes of pentagons satisfy both
+                        # oY and oB.  In next line, attach the 'and
+                        # not' clause to suppress one of the colors.
+                        if (co=='B' and oB and not oY) or (co=='Y' and oY) or (co=='R' and oR):
+                            print (f' {j:2} {k:2};', end='')
+                            out += 1
+                            if out%11 == 0: print()
+            print (f'\n=  Wrote {out} {co} cylinders')

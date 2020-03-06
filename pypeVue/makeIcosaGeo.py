@@ -63,11 +63,14 @@ def dedupClip(phase, layi, layo, clip1, clip2):
     for n, p in enumerate(L): p.dex = n
     L.sort(key = CCW if phase==1 else FRA)
     transi = {} # Make node-number translation table for merged points
+    if phase==1:
+        for p in L:  p.dupl = 1 # how many duplicates of point
     for p in L:
         me = p.dex; del p.dex
         if pointInBox (p, clip1, clip2):
             if ssq(*(p.diff(pprev))) > eps:
                 layo.posts.append(p)
+            elif phase==1: pprev.dupl += 1
             transi[me] = len(layo.posts)-1
         else:          # p is out-of-box; remove its edge evidence
             nbrs = layi.edgeList[me]
@@ -75,7 +78,7 @@ def dedupClip(phase, layi, layo, clip1, clip2):
                 layi.edgeList[nbr].remove(me)
             del layi.edgeList[me] # Get rid of me
         pprev = p
-
+        
     # Translate all edge numbers in the edgeList to merge points
     el = layi.edgeList
     for i in el.keys():
@@ -98,7 +101,7 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
     '''
     phi = (1+sqrt(5))/2
     cornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'
-    facesNote = 'aij ajf afb abe aei bfk bkl ble cdh chl clk ckg cgd dgj dji dih dji dih elh ehi fjg fgk'
+    facesNote = 'aij ajf afb abe aei bfk bkl ble cdh chl clk ckg cgd dgj dji dih elh ehi fjg fgk'
     corr1 = {'o':0, 'i':1, 'j':-1, 'p':phi, 'q':-phi}
     corners = [Point(corr1[i], corr1[j], corr1[k]) for i,j,k in cornerNote.split()]
     # Rotate corners by rz, ry degrees. See:
@@ -143,16 +146,18 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
         for dq in elo[p.num]:
             q = po[dq]
             if 1+p.rank < q.rank: # Is p the new pop of q?
-                q.pa, q.pb, q.rank = p, p, 1+p.rank
+                q.pa, q.pb, q.rank = p.num, p.num, 1+p.rank
             elif p.rank < q.rank: # Is p the new mom of q?
-                q.pb = p
-    dedupClip(2, laylo2, layin, clip1, clip2)    
+                q.pb = p.num
+    dedupClip(2, laylo2, layin, clip1, clip2) 
+    #for n,p in enumerate(po):  print (f'=  {n:3}.  d{p.dupl}  pa {p.pa}  pb {p.pb}')
+   
 
 if __name__ == '__main__':
     # This is a test section for genIcosahedron
     phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
     yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
-    for Vfreq in (6,):
+    for Vfreq in (10,):
         clipLo = Point(-2,-2,-2)
         clipLo = Point(-2,-2,-0.001)
         #clipLo = Point(-2,-2,-0.2)
@@ -186,7 +191,8 @@ if __name__ == '__main__':
                         p, q = lopo[j], lopo[k]
                         oB = p.rank == q.rank
                         oY = p.nnbrs==5 or q.nnbrs==5
-                        oC = p.pa==p.pb and q.pa==q.pb and not (oB or oY)
+                        #oC = p.pa==p.pb and q.pa==q.pb and not (oB or oY)
+                        oC = p.dupl>1 and q.dupl>1 and not (oB or oY)
                         oR = not (oB or oY or oC)
                         # Note, some spokes may satisfy multiple
                         #   conditions.  In next line, one can attach

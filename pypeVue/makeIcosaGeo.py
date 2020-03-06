@@ -152,7 +152,7 @@ if __name__ == '__main__':
     # This is a test section for genIcosahedron
     phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
     yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
-    for Vfreq in (3,):
+    for Vfreq in (16,):
         clipLo = Point(-2,-2,-2)
         clipLo = Point(-2,-2,-0.001)
         #clipLo = Point(-2,-2,-0.2)
@@ -177,19 +177,22 @@ if __name__ == '__main__':
         lopo = LO.posts;  loel = LO.edgeList
         print (";\n=A gg['endGap']=0")
         # Generate sets of cylinders in various colors.
-        for co in ('Y', 'B', 'R'):
+        for co in ('Y', 'B', 'R', 'C'):
             print (f'=C  {co}paa')
             out = 0
             for j in sorted(loel.keys()):
                 for k in sorted(loel[j]):
                     if j<k:   # Both of j,k and k,j are in the list
-                        oB = lopo[j].rank == lopo[k].rank
-                        oY = lopo[j].nnbrs==5 or lopo[k].nnbrs==5
-                        oR = not (oB or oY)
-                        # Note, level spokes of pentagons satisfy both
-                        # oY and oB.  In next line, attach the 'and
-                        # not' clause to suppress one of the colors.
-                        if (co=='B' and oB and not oY) or (co=='Y' and oY) or (co=='R' and oR):
+                        p, q = lopo[j], lopo[k]
+                        oB = p.rank == q.rank
+                        oY = p.nnbrs==5 or q.nnbrs==5
+                        oR = p.pa==p.pb and q.pa==q.pb and not (oB or oY)
+                        oC = not (oB or oY or oR)
+                        # Note, some spokes may satisfy multiple
+                        #   conditions.  In next line, one can attach
+                        #   'and not' clauses to suppress extra
+                        #   cylinders if desired.
+                        if (co=='B' and oB and not oY) or (co=='Y' and oY) or (co=='R' and oR) or (co=='C' and oC):
                             print (f' {j:2} {k:2};', end='')
                             out += 1
                             if out%11 == 0: print()

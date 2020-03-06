@@ -152,7 +152,7 @@ if __name__ == '__main__':
     # This is a test section for genIcosahedron
     phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
     yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
-    for Vfreq in (16,):
+    for Vfreq in (6,):
         clipLo = Point(-2,-2,-2)
         clipLo = Point(-2,-2,-0.001)
         #clipLo = Point(-2,-2,-0.2)
@@ -186,8 +186,8 @@ if __name__ == '__main__':
                         p, q = lopo[j], lopo[k]
                         oB = p.rank == q.rank
                         oY = p.nnbrs==5 or q.nnbrs==5
-                        oR = p.pa==p.pb and q.pa==q.pb and not (oB or oY)
-                        oC = not (oB or oY or oR)
+                        oC = p.pa==p.pb and q.pa==q.pb and not (oB or oY)
+                        oR = not (oB or oY or oC)
                         # Note, some spokes may satisfy multiple
                         #   conditions.  In next line, one can attach
                         #   'and not' clauses to suppress extra

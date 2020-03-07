@@ -1,0 +1,49 @@
+Notes about geodesic outputs that are striking or interesting
+
+------------------------------------------------
+With wide thin posts, an effect like an inner dome occurs.
+Picture: geo-freq6-all1c.png
+Eg:  
+    yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
+    Vfreq=6
+    clipLo = Point(-2,-2,-0.01)
+    clipHi = Point(2,2,2)
+./makeIcosaGeo.py > t1-v && ./pypeVue.py f=t1-v  postLabel=f  pDiam=.07 postHi=.01 postDiam=.35
+
+The post diameter above is slightly more than pentagon diameter, and
+slightly less than hexagon diameter.  Also, cylinders are thick, so
+most of the edges of posts are covered by them.
+
+------------------------------------------------
+
+For a sort of trefoil effect:
+./pypeVue.py f=eg-geo-6a geoColors=YCCC pDiam=0.05
+where eg-geo-6a contains an =L G 9 1; code
+
+------------------------------------------------
+
+Color translation: Parameter geoColors is a four-character string that
+specifies which colors to use for certain classes of cylinders (edges
+in the geodesic arrangement).  The classes will be called Pentagons,
+Rings, Rays, and Seams.*  The four color-letters in the geoColors
+parameter should have legitimate pypeVue color codes to use for
+Pentagons, Rings, Rays, and Seams, in that order.  Example: The
+default value, geoColors=YBRC, colors Pentagons yellow, Rings blue,
+Rays red, and Seams cyan.  Example: geoColors=YCCC colors Pentagons
+yellow, and all other edges cyan.
+
+To see the latter example:
+    ./pypeVue.py f=eg-geo-6a geoColors=YCCC
+
+To see yellow, cyan, purple, coral:
+    ./pypeVue.py f=eg-geo-6a geoColors=YCPA pDiam=0.05
+
+*Generally, "Pentagon" refers to the spokes of small pentagons, and
+also refers to the outer edges of the top central small pentagon.
+"Ring" refers to sets of basically-horizontal edges, eg the equator.
+"Rays" are non-Ring sides of hexagons.  "Seams" are edges where
+icosahedron faces meet.  (At present [6 March] code for detecting
+which class an edge is in does not correctly classify outer edges of
+most small pentagons.)
+
+

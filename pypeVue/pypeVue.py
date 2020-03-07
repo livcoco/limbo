@@ -203,10 +203,6 @@ def generatePosts(code, numberTexts):
         nums = getNums(3,3)     # Need exactly 3 numbers
         if nums:   LO.BP = Point(*nums);  return
 
-    if code=='O':               # Set origin point, OP
-        nums = getNums(3,3)     # Need exactly 3 numbers
-        if nums:   LO.OP = Point(*nums);  return
-
     if code=='C':               # Create a collection of posts
         nums = getNums(3,33333) # Need at least 3 numbers
         if nums:
@@ -217,6 +213,34 @@ def generatePosts(code, numberTexts):
                 print (f'Anomaly: code {code}, {numberTexts} has {nums} left over')
             return
 
+    if code=='G':               # Create geodesic posts and cylinders
+        from makeIcosaGeo import genIcosahedron
+        nums = getNums(2,2)     # Need exactly 2 numbers
+        Vfreq, gScale = int(round(nums[0])), nums[1]
+        elo = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout
+        # Rotation in following is not yet as advertised -- ie is normalizer not opt
+        genIcosahedron(elo, Vfreq, LO.clip1, LO.clip2, LO.rotavec.y, LO.rotavec.z)
+        lopo = elo.posts;  loel = elo.edgeList
+        # Scale the generated posts by given scale; and copy to LO
+        for p in lopo:
+            p.scale(gScale)
+            LO.posts.append(Post(p))
+        # Generate sets of cylinders in various colors.
+        colorTrans = {'Y':geoColors[0], 'B':geoColors[1], 'R':geoColors[2], 'C':geoColors[3] }
+        for co in ('Y', 'B', 'R', 'C'):
+            for j in sorted(loel.keys()):
+                for k in sorted(loel[j]):
+                    if j<k:   # Both of j,k and k,j are in the list
+                        p, q = lopo[j], lopo[k]
+                        oB = p.rank == q.rank
+                        oY = p.nnbrs==5 or q.nnbrs==5
+                        oC = p.dupl>1 and q.dupl>1 and not (oB or oY)
+                        oR = not (oB or oY or oC)
+                        if (co=='B' and oB and not oY) or (co=='Y' and oY) or (co=='R' and oR) or (co=='C' and oC):
+                            cyl = Cylinder(j,k, 'c', 'c', colorTrans[co], 'p', endGap, 0, 0)
+                            LO.cyls.append(cyl)
+
+        
     if code=='L':               # Create a line of posts
         nums = getNums(4,4)     # Need exactly 4 numbers
         if nums:
@@ -225,6 +249,10 @@ def generatePosts(code, numberTexts):
             for k in range(n):
                 postAt(x+dx, y+dy, z+dz)
             return
+
+    if code=='O':               # Set origin point, OP
+        nums = getNums(3,3)     # Need exactly 3 numbers
+        if nums:   LO.OP = Point(*nums);  return
 
     if code=='P':               # Create a polygon of posts        
         nums = getNums(3,3)     # Need exactly 3 numbers
@@ -269,7 +297,7 @@ def postTop(p, OP):   # Given post location p, return loc. of post top
     zAxisAngle =  atan2(ty-y, tx-x)  * 180/pi
     return Point(tx,ty,tz), round(yAxisAngle,2), round(zAxisAngle,2)
 
-#==================================
+#=========================================================
 def scriptCyl(ss, preCyl):
     post1, post2, lev1, lev2, colo, thix, gap, nonPost, num = preCyl.get9()
     mode = 0                    # mode 0 = comments at start
@@ -303,6 +331,7 @@ def scriptCyl(ss, preCyl):
     return preCyl
 #==================================
 def scriptPost(ss, prePost):
+    codes = 'BCGHILOPRST'
     pc, code, numbers = '?', '?', prePost.data
     for cc in ss:   # Process characters of script
         # Add character to number, or store a number, or what?
@@ -474,8 +503,8 @@ def loadScriptFile(fiName):   # Read scripts from file
 
 if __name__ == '__main__':
     colors, levels = 'GYRBCMW',  'abcde'
-    thixx,  digits = 'pqrstuvw', '01234356789'
-    colorSet = {'G':'"Green"', 'Y':'"Yellow"', 'R':'"Red"', 'B':'"Blue"', 'C':'"Cyan"', 'M':'"Magenta"', 'W':'"White"'}   
+    thixx,  digits = 'pqrstuvw', '01234356789+-.'
+    colorSet = {'G':'"Green"', 'Y':'"Yellow"', 'R':'"Red"', 'B':'"Blue"', 'C':'"Cyan"', 'M':'"Magenta"', 'W':'"White"', 'P':'[.5,0,.5]', 'A':'"Coral"'}
 
     # Set initial values of main parameters
     pDiam,   qDiam,    dRatio   = 0.06, 0.02, sqrt(2)
@@ -492,7 +521,7 @@ if __name__ == '__main__':
     zSpread, zSize, postAxial = False, 1, True
     userPar0 = userPar1 = userPar2 = '""'
     traceExec=False
-    codes, digits = 'BCLOPRST', '01234356789+-.'
+    geoColors = 'YBRC'          # Colors for pentagons, rings, rays, seams
     script1 = '=P postDiam=.1 endGap=.05','=C Gpae 1,2;;;;1;Rea 1,2;;;;1;','=L C 0,0,0; P5,1,0;'
     for k in range(1,len(argv)):
         paramTxt = paramTxt + ' ' + argv[k]
@@ -502,6 +531,10 @@ if __name__ == '__main__':
     myname = path.splitext(path.basename(__file__))[0]
     exec(f'from {myname} import Point,Post,Layout', globals(), userLocals)
     LO = Layout()  # Start an empty layout.  LO is global.
+    LO.clip1   =  Point(-2,-2,-0.01)
+    LO.clip2   = Point(2,2,2)
+    phi = (1+sqrt(5))/2;   r = sqrt(2+phi)
+    LO.rotavec = Point(0, asin(phi/r)*180/pi, -18)
     installParams((paramTxt,)) # To set f param from command line if specified
     scripts = script1 if f == '' else loadScriptFile(f)
     runScript(scripts)          # Create post locations layout

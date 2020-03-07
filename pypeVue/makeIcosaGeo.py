@@ -128,13 +128,14 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
         if pointInBox(p,clip1,clip2) or pointInBox(q,clip1,clip2) or pointInBox(r,clip1,clip2):
             pn = len(laylo1.posts)
             genTriangleK (laylo1, Vfreq, p, q, r, pn)
-            print (f'=   {len(laylo1.posts):3} posts after face {i}{j}{k}')
+            #print (f'=   {len(laylo1.posts):3} posts after face {i}{j}{k}')
         else:            
-            print (f'=   {len(laylo1.posts):3} posts after face {i}{j}{k} skipped')
+            #print (f'=   {len(laylo1.posts):3} posts after face {i}{j}{k} skipped')
+            pass
     # Have done all faces.  Now dedup & clip laylo and copy points into layin
-    print (f'=  {len(laylo1.posts)} posts before dedup and clip')
+    #print (f'=  {len(laylo1.posts)} posts before dedup and clip')
     dedupClip(1, laylo1, laylo2, clip1, clip2)
-    print (f'=  {len(laylo2.posts)} posts after dedup and clip')
+    print (f'=  Made {len(laylo2.posts)} posts for geodesic with frequency {Vfreq}')
     
     # Find ranks, or number of rows down from rank-0 center point.
     po = laylo2.posts; elo = laylo2.edgeList;  infin = Vfreq*20
@@ -156,11 +157,12 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
 if __name__ == '__main__':
     # This is a test section for genIcosahedron
     phi = (1+sqrt(5))/2;  r = sqrt(2+phi)
+    yAngle, zAngle = asin(phi/r)*180/pi, -9  # ~ 58.2825, ...
     yAngle, zAngle = asin(phi/r)*180/pi, -18 # ~ 58.2825, -18
-    for Vfreq in (10,):
+    for Vfreq in (6,):
         clipLo = Point(-2,-2,-2)
-        clipLo = Point(-2,-2,-0.001)
-        #clipLo = Point(-2,-2,-0.2)
+        clipLo = Point(-2,-2,-0.65)
+        clipLo = Point(-2,-2,-0.01)
         clipHi = Point(2,2,2)
         print (f'=  Vfreq {Vfreq},   yAngle {yAngle},  zAngle {zAngle}')
         print (f'=  Clip box corners = {clipLo} and {clipHi}')
@@ -183,7 +185,7 @@ if __name__ == '__main__':
         print (";\n=A gg['endGap']=0")
         # Generate sets of cylinders in various colors.
         for co in ('Y', 'B', 'R', 'C'):
-            print (f'=C  {co}paa')
+            print (f'=C  {co}pff')
             out = 0
             for j in sorted(loel.keys()):
                 for k in sorted(loel[j]):

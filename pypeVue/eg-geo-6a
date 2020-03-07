@@ -1,8 +1,3 @@
-This script is a bit of testing for G, H, I layout codes, which are
-used for making geodesic dome layouts.
-
-=P postAxial=f postLabel=f postDiam=.03  pDiam=.03  postHi=.03
-=P             postHi=.01  postDiam=.35  pDiam=.07
-=L G 9 1;
-=C
-
+This script is a small example for the G geodesic layout code
+=P postAxial=f postLabel=f postDiam=.04  pDiam=.05  postHi=.03
+=L G 6 2;

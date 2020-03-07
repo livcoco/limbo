@@ -141,7 +141,7 @@ def genIcosahedron(layin, Vfreq, clip1, clip2, rotay, rotaz):
     po = laylo2.posts; elo = laylo2.edgeList;  infin = Vfreq*20
     for k,p in enumerate(po):
         p.num=k;   p.pa = p.pb = p.rank = infin  # Set stuff large
-    po[0].rank = 0
+    if len(po): po[0].rank = 0
     for p in po:
         p.nnbrs = len(elo[p.num])
         for dq in elo[p.num]:

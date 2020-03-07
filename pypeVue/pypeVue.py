@@ -100,20 +100,21 @@ class Post:
 
 class Cylinder:
     def __init__(self, post1, post2, lev1, lev2, colo, thix, gap, data=0, num=0):
-        self.put9 (post1, post2, lev1, lev2, colo, thix, gap, data, num)
+        diam = thickLet(thix)
+        self.put9 (post1, post2, lev1, lev2, colo, diam, gap, data, num)
         
     def get9(self):
-        return self.post1, self.post2, self.lev1, self.lev2, self.colo, self.thix, self.gap, self.data, self.num
+        return self.post1, self.post2, self.lev1, self.lev2, self.colo, self.diam, self.gap, self.data, self.num
     
-    def put9(self, post1, post2, lev1, lev2, colo, thix, gap, data, num):
+    def put9(self, post1, post2, lev1, lev2, colo, diam, gap, data, num):
         self.post1, self.post2 = post1, post2
         self.lev1,  self.lev2  = lev1,  lev2
-        self.colo,  self.thix  = colo,  thix
-        self.gap,   self.data =  gap,   data
+        self.colo,  self.diam  = colo,  diam
+        self.gap,   self.data  = gap,   data
         self.num = num
         
     def __str__( self):
-        return f'Cylinder {self.num} ({self.post1},{self.post2}) {self.colo}{self.thix}{self.lev1}{self.lev2} {round(self.gap,2)}'
+        return f'Cylinder {self.num} ({self.post1},{self.post2}) {self.colo}{self.diam:0.2f}{self.lev1}{self.lev2} {round(self.gap,2)}'
     def __repr__(self):  return self.__str__()
     
 class Layout:
@@ -213,33 +214,46 @@ def generatePosts(code, numberTexts):
                 print (f'Anomaly: code {code}, {numberTexts} has {nums} left over')
             return
 
+    if code=='D':               # Remove specified posts and references to them
+        print ('D: Oops how to do this?')
+        nums = getNums(1,33333)     # Need some numbers
+        return
+    
     if code=='G':               # Create geodesic posts and cylinders
         from makeIcosaGeo import genIcosahedron
         nums = getNums(2,2)     # Need exactly 2 numbers
+        if not nums: return
         Vfreq, gScale = int(round(nums[0])), nums[1]
         elo = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout
         # Rotation in following is not yet as advertised -- ie is normalizer not opt
         genIcosahedron(elo, Vfreq, LO.clip1, LO.clip2, LO.rotavec.y, LO.rotavec.z)
-        lopo = elo.posts;  loel = elo.edgeList
+        epo = elo.posts;  eel = elo.edgeList;  nLoPo = len(LO.posts)
         # Scale the generated posts by given scale; and copy to LO
-        for p in lopo:
+        for p in epo:
             p.scale(gScale)
             LO.posts.append(Post(p))
         # Generate sets of cylinders in various colors.
         colorTrans = {'Y':geoColors[0], 'B':geoColors[1], 'R':geoColors[2], 'C':geoColors[3] }
         for co in ('Y', 'B', 'R', 'C'):
-            for j in sorted(loel.keys()):
-                for k in sorted(loel[j]):
+            for j in sorted(eel.keys()):
+                for k in sorted(eel[j]):
                     if j<k:   # Both of j,k and k,j are in the list
-                        p, q = lopo[j], lopo[k]
+                        p, q = epo[j], epo[k]
                         oB = p.rank == q.rank
                         oY = p.nnbrs==5 or q.nnbrs==5
                         oC = p.dupl>1 and q.dupl>1 and not (oB or oY)
                         oR = not (oB or oY or oC)
                         if (co=='B' and oB and not oY) or (co=='Y' and oY) or (co=='R' and oR) or (co=='C' and oC):
-                            cyl = Cylinder(j,k, 'c', 'c', colorTrans[co], 'p', endGap, 0, 0)
+                            cyl = Cylinder(j+nLoPo,k+nLoPo, 'c', 'c', colorTrans[co], 'p', endGap, 0, 0)
                             LO.cyls.append(cyl)
-
+        return
+        
+    if code=='H':               # Create a clip box (particularly for geodesics)
+        nums = getNums(6,6)     # Need exactly 6 numbers        
+        if nums:
+            LO.clip1 = Point(*nums[:3]);
+            LO.clip2 = Point(*nums[3:]);
+        return
         
     if code=='L':               # Create a line of posts
         nums = getNums(4,4)     # Need exactly 4 numbers
@@ -331,7 +345,7 @@ def scriptCyl(ss, preCyl):
     return preCyl
 #==================================
 def scriptPost(ss, prePost):
-    codes = 'BCGHILOPRST'
+    codes = 'BCDGHILOPRST'
     pc, code, numbers = '?', '?', prePost.data
     for cc in ss:   # Process characters of script
         # Add character to number, or store a number, or what?
@@ -440,8 +454,7 @@ def writeCylinders(fout, clo, chi, listIt):
             print (f'Make {cyl}  L {L:2.2f}  {cName}')
         yAngle = round((pi/2 - asin(dz/L)) * 180/pi, 2)
         zAngle = round( atan2(dy, dx)      * 180/pi, 2)
-        diam = thickLet(thix)
-        fout.write(f'    oneCyl({p1}, {p2}, {diam}, {round(L-2*gap,3)}, {yAngle}, {zAngle}, {cc}, {pp.foot}, {cName});\n')
+        fout.write(f'    oneCyl({p1}, {p2}, {cyl.diam}, {round(L-2*gap,3)}, {yAngle}, {zAngle}, {cc}, {pp.foot}, {cName});\n')
 
 #-------------------------------------------------------------
 def autoAdder(fout):    # See if we need to auto-add cylinders

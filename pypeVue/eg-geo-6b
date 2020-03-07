@@ -1,0 +1,8 @@
+This script is a bit of testing for G, H, I layout codes, which are
+used for making geodesic dome layouts.
+=P postAxial=f postLabel=f postDiam=.03 postHi=.03
+=P pDiam=.04
+=  Set clip box to take away 3 posts, leaving a door opening.
+=  7 Mar glitch: clip box nonintuitively applies before standard rotation of 58,-18
+=L   H  2 2 2   -1 -2 -.4; G 4 1;
+==C Bpcc 44 45;

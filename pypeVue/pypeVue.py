@@ -502,9 +502,9 @@ def loadScriptFile(fiName):   # Read scripts from file
         return fi.readlines()
 
 if __name__ == '__main__':
-    colors, levels = 'GYRBCMW',  'abcde'
-    thixx,  digits = 'pqrstuvw', '01234356789+-.'
+    levels, thixx,  digits = 'abcde', 'pqrstuvw', '01234356789+-.'
     colorSet = {'G':'"Green"', 'Y':'"Yellow"', 'R':'"Red"', 'B':'"Blue"', 'C':'"Cyan"', 'M':'"Magenta"', 'W':'"White"', 'P':'[.5,0,.5]', 'A':'"Coral"'}
+    colors = colorSet.keys()
 
     # Set initial values of main parameters
     pDiam,   qDiam,    dRatio   = 0.06, 0.02, sqrt(2)

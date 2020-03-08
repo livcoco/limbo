@@ -1,0 +1,18 @@
+This script is a bit of testing for G & H layout codes, which are used
+for making geodesic dome layouts.  Also demos D and E codes.  D
+followed by a list of post numbers deletes those posts and renumbers
+other posts and cylinders accordingly.  E followed by a list of pairs
+of numbers deletes any cylinder that corresponds to a pair.  Note,
+doing E before D uses original post numbers; doing E after D uses new
+(renumbered) post numbers.
+  
+=P postAxial=f postLabel=f postDiam=.03 postHi=.03
+=P pDiam=.04
+=  Set clip box to take away 3 posts, leaving a door opening.
+=  7 Mar glitch: clip box nonintuitively applies before standard rotation of 58,-18
+=L   H  2 2 2   -2 -2 -.4; G 4 1;
+=  Remove an = in =P line, and add one in =L D line, if you
+=  want to see original numbers before post deletions. 
+==P postLabel=Aue
+=L D  78  97 98;
+=L E 57,58  41,60  61,41  60,61;

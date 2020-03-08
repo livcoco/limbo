@@ -214,11 +214,66 @@ def generatePosts(code, numberTexts):
                 print (f'Anomaly: code {code}, {numberTexts} has {nums} left over')
             return
 
-    if code=='D':               # Remove specified posts and references to them
-        print ('D: Oops how to do this?')
-        nums = getNums(1,33333)     # Need some numbers
+    if code=='D':      # Remove specified posts and references to them
+        nums = getNums(1,33333)     # Accept any number of numbers
+        if not nums: return
+        lopo = LO.posts;  nlop = len(lopo)
+        nums = [int(x) for x in sorted(nums)]
+        error = f'{nums[0]} < 0' if nums[0] < 0 else (f'{nums[-1]} >= {nlop}' if nums[-1] >= nlop else None)
+        if error:
+            print (f'Error: List of post numbers has a value {error} -- terminating.')
+            exit(0)
+
+        print (f'=  From {nlop} posts, deleting {len(nums)} of them: {nums}')
+        # If we knew nums were distinct, we'd say polout = [0]*(nlop-len(nums))
+        nin, nout, ninf, polout = 0, 0, nlop+13, [0]*nlop
+        nums.append(ninf)
+        transi = {} # Init post-number translation table
+        # Copy posts, deleting some while making translation table
+        for k in range(nlop):
+            if k == nums[nin]:
+                transi[k] = ninf;  nin += 1
+            else:
+                polout[nout] = lopo[k]
+                transi[k] = nout;  nout += 1
+        
+        # We've deleted some posts; install into layout
+        del lopo;  LO.posts = polout[:nout]
+        # Remove obsolete post numbers from cylinders list
+        locy = LO.cyls;   cylout = []
+        for c in locy:
+            if not(c.post1 in nums or c.post2 in nums):
+                c.post1 = transi[c.post1]
+                c.post2 = transi[c.post2]
+                cylout.append(c)
+        del locy;  LO.cyls = cylout
+        # If we wanted autoAdd to work ok after a D operation, at this
+        # point we would clean up LO.edgeList.  But we don't care...
         return
-    
+
+    # This exclude-edge code is not so efficient but is good enough
+    # for removing handfuls of edges, eg for doors or windows in
+    # geodesics.
+    #def edgecode(e,f): return max(e,f) + 262144*min(e,f)
+    def edgecode(e,f): return max(e,f) + 1000*min(e,f)
+    if code=='E':               # Exclude edges -- remove some cylinders
+        nums = getNums(1,33333)     # Accept any number of numbers
+        if not nums: return  
+        pairs = [(int(x),int(y)) for x,y in zip(nums[::2],nums[1::2])]
+        print (f'To remove: {pairs}')
+        pairs = [edgecode(x,y) for x,y in pairs]
+        drops = [];   locy = LO.cyls
+        for k in range(len(locy)):
+            c = locy[k]
+            if edgecode(c.post1, c.post2) in pairs:
+                drops.append(k)
+        if drops:
+            drops.reverse()
+            for k in drops: del locy[k]
+        else:
+            print (f'=  Error: None of edges {nums} found')
+        return
+        
     if code=='G':               # Create geodesic posts and cylinders
         from makeIcosaGeo import genIcosahedron
         nums = getNums(2,2)     # Need exactly 2 numbers
@@ -345,7 +400,7 @@ def scriptCyl(ss, preCyl):
     return preCyl
 #==================================
 def scriptPost(ss, prePost):
-    codes = 'BCDGHILOPRST'
+    codes = 'BCDEGHILOPRST'
     pc, code, numbers = '?', '?', prePost.data
     for cc in ss:   # Process characters of script
         # Add character to number, or store a number, or what?

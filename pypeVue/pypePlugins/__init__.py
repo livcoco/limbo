@@ -29,11 +29,11 @@ class FunctionList:
     # The next lines create variables that embed correspondences
     # between function names in fNames and functions listed in fList.
     fNames = [] # pypeStubs.tell() will load this with function names
-    fList = []  # Will be list of functions corresponding to names
-    fDict = {}  # Will be dictionary of correspondences from zip(fNames,fList)
-    fRaw  = []  # Will be overall list of triples, (name, func, module)
+    fList  = []  # Will be list of functions corresponding to names
+    fDict  = {}  # Will be dictionary of correspondences from zip(fNames,fList)
+    fTotal = []  # Will be overall list of triples, (name, func, module)
     # next are for same accesses to user-function plugins.
-    uNames = [];    uList = [];    uDict = {};    uRaw  = [] 
+    uNames = [];    uList = [];    uDict = {};    uTotal  = [] 
     
     def registrar():
         # pypeStubs will give us lists of base-level functions + names
@@ -57,18 +57,18 @@ class FunctionList:
                         name = f.__name__ # Get the function name
                         if name in FunctionList.fNames:
                             reg[name] = f
-                            fRaw.append((name, f, pfi))
+                            fTotal.append((name, f, pfi))
                         else:
                             ureg[name] = f
-                            uRaw.append((name, f, pfi))
+                            uTotal.append((name, f, pfi))
                     loaded.append(pfi)
                 except AttributeError:
                     print (f"Calling `tell` for {pfi} failed")
         print (f"Obtained functions from {', '.join(loaded)}")
         # Note, FunctionList.fNames was set up by pypeStubs.tell()
-        FunctionList.fDict = reg
-        FunctionList.fList = [reg[x] for x in FunctionList.fNames]
-        FunctionList.uDict = ureg
+        FunctionList.fDict  = reg
+        FunctionList.fList  = [reg[x] for x in FunctionList.fNames]
+        FunctionList.uDict  = ureg
         FunctionList.uNames = sorted(ureg.keys())
-        FunctionList.uList = [ureg[x] for x in FunctionList.uNames]
+        FunctionList.uList  = [ureg[x] for x in FunctionList.uNames]
         

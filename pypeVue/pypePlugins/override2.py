@@ -1,3 +1,4 @@
+#/usr/bin/python3
 # jiw March 2020
 '''Test-program for pypeVue plugins setup'''
 
@@ -9,18 +10,16 @@ def saywhat():
     fname = _getframe(1).f_code.co_name
     print (f'{fname:15} @ {os.path.basename(__file__)}')
 
-def addEdge(v,w, layout):      saywhat()
-def addEdges(v,w, layout):     saywhat()
-def arithmetic(line, xTrace):  saywhat()
-def autoAdder(fout):           saywhat()
-def scriptCyl(ss, preCyl):     saywhat()
-def scriptPost(ss, prePost):
+def autoAdder(fout):
     saywhat()
-    print (f'len(ref.fNames) = {len(ref.fNames)},  len(ref.fList) = {len(ref.fList)},  len(ref.fDict) = {len(ref.fDict)}')
+    print (f'len(ref.fNames) = {len(ref.fNames):2},  len(ref.fDict) = {len(ref.fDict)}\nlen(ref.uNames) = {len(ref.uNames):2},  len(ref.uDict) = {len(ref.uDict)}')
 
-def Xtell():
+def tell():
     def whatFunc(layout): # Functions can be module level or local, etc
+        saywhat()
         return None
-    return (addEdge, addEdges, arithmetic, autoAdder, scriptCyl,scriptPost, someFunc, whatFunc)
+    return (autoAdder, someFunc, whatFunc)
 # For user functions, pypeVue provides one argument, a layout.
-def someFunc(layout): return otherstuff(layout, 4, 3)
+def someFunc(layout):
+    saywhat()
+    return otherstuff(layout, 4, 3)

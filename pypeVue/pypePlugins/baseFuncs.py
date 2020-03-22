@@ -5,7 +5,7 @@ supports visualization of arrangements of edges in geodesic dome
 structures.'''
 
 from sys import argv, exit, exc_info, stderr
-from datetime import datetime
+import datetime
 from math import sqrt, pi, cos, sin, asin, atan2
 from pypeVue import ssq, sssq, rotate2, isTrue 
 from pypeVue import Point, Post, Cylinder, Layout
@@ -459,9 +459,45 @@ def installParams(script):
 def loadScriptFile(fiName):   # Read scripts from file
     with open(fiName) as fi:
         return fi.readlines()
+#-------------------------------------------------------------
+def setClipAndRota(c):
+    '''Set empty layout and set defaults for geodesic-dome clipping box
+    corners and rotation vector    '''    
+    c.LO = Layout()  # Start an empty layout.
+    c.LO.clip1   =  Point(-2,-2,-0.01)
+    c.LO.clip2   = Point(2,2,2)
+    phi = (1+sqrt(5))/2;   r = sqrt(2+phi)
+    c.LO.rotavec = Point(0, asin(phi/r)*180/pi, -18)    
+#-------------------------------------------------------------
+def setParamsAndScript(ref):
+    '''Install initial params (eg, f=scriptfilename) if given, and set the
+    script from builtin script or from a file'''
+    ref.installParams((ref.paramTxt,))
+    ref.scripts = ref.script1 if ref.f == '' else ref.loadScriptFile(ref.f)
+#-------------------------------------------------------------
+def setCodeFrontAndBack(c):
+    c.date = datetime.datetime.today().strftime('%Y-%m-%d  %H:%M:%S')
+    c.frontCode = f'''// File {c.scadFile}, generated  {c.date}
+// by pypeVue from script "{c.f}"
+$fn = {c.cylSegments};
+userPar0 = {c.userPar0};
+userPar1 = {c.userPar1};
+userPar2 = {c.userPar2};
+{'' if c.codeBase else '//'}use <{c.codeBase}>
+{'' if c.userCode else '//'}include <{c.userCode}>
+difference() {'{'}
+  union() {'{'}
+'''
+    c.backCode = f'''\n
+    addOn({c.SF}, {c.LO.BP}, {c.LO.OP}); // unscaled BP, OP
+  {'}'}
+  subOff ({c.SF}, {c.LO.BP}, {c.LO.OP}); // unscaled BP, OP
+{'}'}'''
+#-------------------------------------------------------------
 
 def tell():
     return (addEdge, addEdges, arithmetic, autoAdder, generatePosts,
             installParams, levelAt, loadScriptFile, postTop,
-            runScript, scriptCyl, scriptPost, thickLet,
+            runScript, scriptCyl, scriptPost, setClipAndRota,
+            setCodeFrontAndBack, setParamsAndScript, thickLet,
             writeCylinders, writeLabels, writePosts)

@@ -54,7 +54,7 @@ arrangements of edges in geodesic dome structures.'''
 #     that $SCF changed*, and re-render its image.
 
 from sys import argv, exit, exc_info, stderr
-from datetime import datetime
+import time, datetime
 from math import sqrt, pi, cos, sin, asin, atan2
 from pypePlugins import FunctionList
 
@@ -154,36 +154,11 @@ def setupData(c):
     c.script1 = '=P postDiam=.1 endGap=.05','=C Gpae 1,2;;;;1;Rea 1,2;;;;1;','=L C 0,0,0; P5,1,0;'
     for k in range(1,len(argv)):
         c.paramTxt = c.paramTxt + ' ' + argv[k]
-
     c.userLocals = {}               # Initialize empty user-space dict
     import os.path
     myname = os.path.splitext(os.path.basename(__file__))[0]
+    # Add classes Point, Post, Layout, FunctionList to userLocals, and ref.
     exec(f'from {myname} import Point,Post,Layout\nfrom pypePlugins import FunctionList\nref=FunctionList', c.userLocals)
-    c.LO = Layout()  # Start an empty layout.  LO is global.
-    c.LO.clip1   =  Point(-2,-2,-0.01)
-    c.LO.clip2   = Point(2,2,2)
-    phi = (1+sqrt(5))/2;   r = sqrt(2+phi)
-    c.LO.rotavec = Point(0, asin(phi/r)*180/pi, -18)
-    ref.installParams((c.paramTxt,)) # To set f param from command line if specified
-    c.scripts = c.script1 if c.f == '' else ref.loadScriptFile(c.f)
-    ref.runScript(c.scripts)          # Create post locations layout
-    c.date = datetime.today().strftime('%Y-%m-%d  %H:%M:%S')
-    c.frontCode = f'''// File {c.scadFile}, generated  {c.date}
-// by pypeVue from script "{c.f}"
-$fn = {c.cylSegments};
-userPar0 = {c.userPar0};
-userPar1 = {c.userPar1};
-userPar2 = {c.userPar2};
-{'' if c.codeBase else '//'}use <{c.codeBase}>
-{'' if c.userCode else '//'}include <{c.userCode}>
-difference() {'{'}
-  union() {'{'}
-'''
-    c.backCode = f'''\n
-    addOn({c.SF}, {c.LO.BP}, {c.LO.OP}); // unscaled BP, OP
-  {'}'}
-  subOff ({c.SF}, {c.LO.BP}, {c.LO.OP}); // unscaled BP, OP
-{'}'}'''
 #---------------------------------------------------------
 
 def rotate2(a,b,theta):
@@ -197,11 +172,14 @@ def isTrue(x):
     return not str(x)[:1] in 'fFNn'
     
 if __name__ == '__main__':
+    t0 = time.time()
     FunctionList.registrar()
     ref = FunctionList
-    #print ('Before setupData(ref) ', [x for x in dir(ref) if not x.startswith('__')])
     setupData(ref)
-    #print ('After  setupData(ref) ', [x for x in dir(ref) if not x.startswith('__')])
+    ref.setClipAndRota(ref)   # Create LO and its clip1, clip2, rotavec vals
+    ref.setParamsAndScript(ref)   # Install initial params & get script
+    ref.runScript(ref.scripts)    # Run selected script
+    ref.setCodeFrontAndBack(ref)  # Set up beginning and ending SCAD code
     with open(ref.scadFile, 'w') as fout:
         fout.write(ref.frontCode)
         ref.writePosts    (fout)
@@ -209,4 +187,5 @@ if __name__ == '__main__':
         ref.writeCylinders(fout, 0, len(ref.LO.cyls), ref.cylList)
         ref.autoAdder     (fout)
         fout.write(ref.backCode)
-    print (f'For script "{ref.f}", pypeVue wrote code to {ref.scadFile} at {ref.date}')
+    t1 = time.time()-t0
+    print (f'For script "{ref.f}", pypeVue wrote code to {ref.scadFile} at {ref.date} in {t1:0.3f} seconds')

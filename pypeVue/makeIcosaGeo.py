@@ -10,7 +10,9 @@
 
 #       ./makeIcosaGeo.py > t1-v; ./pypeVue.py f=t1-v
 
-from pypeVue import Point, Layout, ssq, sssq, addEdges
+from pypeVue import Point, Layout, ssq, sssq
+from pypePlugins import FunctionList
+from pypePlugins.baseFuncs import addEdges
 from math import sqrt, pi, asin, sin, cos, atan2
 
 def genTriangleK (layout, k, v0, v1, v2, pn):

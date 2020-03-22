@@ -16,16 +16,15 @@ def arithmetic(line, xTrace):
     # Remove =A and any leading whitespace, to avoid indentation error
     ref = FunctionList
     code = line.lstrip()
-    ref.userLocals['gg']=globals() # Allow access to globals, albeit awkward
     if xTrace:   print (f'Code to exec:  {code}')
     try:
         if code:    # have we got any user-code?
             exec (code, ref.userLocals)   # yes, try to execute it
     except SystemExit:
         exit(0)             # allow code to exit
-    except Exception:           # catch normal exceptions
+    except Exception:       # catch normal exceptions
         er = exc_info()
-        print(f'Got error:  {er[1]}   from  {code.strip()}')
+        print(f'Got error:  `{er[1]}`   from code:  `{code.strip()}`')
 #---------------------------------------------------------
 # Compute coords of a letter-point on post p
 def levelAt(lev, p):
@@ -37,10 +36,11 @@ def levelAt(lev, p):
 
 def thickLet(thix):
     ref = FunctionList
+    if type(thix)==float:
+        return thix       # If thix is already real, return as is
     if thix=='p':
         return ref.SF*ref.pDiam
     else: # diameters q, r, s, t... scale geometrically
-        print (f'thix {thix}')
         expo = max(0, ord(thix)-ord('q'))
         return round(ref.SF * ref.qDiam * pow(ref.dRatio, expo), 2)
 
@@ -159,13 +159,13 @@ def generatePosts(code, numberTexts):
         rlo = ref.LO
         # Rotation in following is not yet as advertised -- ie is normalizer not opt
         genIcosahedron(elo, Vfreq, rlo.clip1, rlo.clip2, rlo.rotavec.y, rlo.rotavec.z)
-        epo = elo.posts;  eel = elo.edgeList;  nLoPo = len(LO.posts)
+        epo = elo.posts;  eel = elo.edgeList;  nLoPo = len(rlo.posts)
         # Scale the generated posts by given scale; and copy to LO
         for p in epo:
             p.scale(gScale)
-            ref.LO.posts.append(Post(p))
+            rlo.posts.append(Post(p))
         # Generate sets of cylinders in various colors.
-        colorTrans = {'Y':geoColors[0], 'B':geoColors[1], 'R':geoColors[2], 'C':geoColors[3] }
+        colorTrans = {'Y':ref.geoColors[0], 'B':ref.geoColors[1], 'R':ref.geoColors[2], 'C':ref.geoColors[3] }
         for co in ('Y', 'B', 'R', 'C'):
             for j in sorted(eel.keys()):
                 for k in sorted(eel[j]):
@@ -176,8 +176,8 @@ def generatePosts(code, numberTexts):
                         oC = p.dupl>1 and q.dupl>1 and not (oB or oY)
                         oR = not (oB or oY or oC)
                         if (co=='B' and oB and not oY) or (co=='Y' and oY) or (co=='R' and oR) or (co=='C' and oC):
-                            cyl = Cylinder(j+nLoPo,k+nLoPo, 'c', 'c', colorTrans[co], 'p', endGap, 0, 0)
-                            ref.LO.cyls.append(cyl)
+                            cyl = Cylinder(j+nLoPo,k+nLoPo, 'c', 'c', colorTrans[co], 'p', ref.endGap, 0, 0)
+                            rlo.cyls.append(cyl)
         return
         
     if code=='H':               # Create a clip box (particularly for geodesics)
@@ -252,7 +252,7 @@ def scriptCyl(ss, preCyl):
     pc, code = '?', '?'
     for cc in ss:            
         if pc == '#':       # Insert a simple variable's value
-            post1, post2 = post2, userLocals[cc]
+            post1, post2 = post2, ref.userLocals[cc]
             nonPost = False
         elif cc in ref.colors: colo = cc
         elif cc in ref.thixx: thix  = cc
@@ -425,7 +425,7 @@ def autoAdder(fout):    # See if we need to auto-add cylinders
                     post1, post2 = str(pn), str(qn)          
                     cyl = Cylinder(pn,qn, lev1, lev2, colo, thix, ref.endGap, 0,0)
                     rlo.cyls.append(cyl)
-                    addEdges(pn, qn, LO)
+                    ref.addEdges(pn, qn, ref.LO)
         writeCylinders(fout, clo, len(rlo.cyls), ref.autoList)
 #-------------------------------------------------------------
 def installParams(script):

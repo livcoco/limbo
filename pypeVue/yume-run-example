@@ -1,0 +1,7 @@
+#!/bin/sh
+# yume-run-example - Makes menu to run pypeVue with its examples
+L=""
+for i in eg-*; do
+	L="$L -bu -la $i 'echo; echo Processing $i; ./pypeVue.py f=$i'"
+done
+echo $L  | xargs yume -at 406x654+1074+747 -ex

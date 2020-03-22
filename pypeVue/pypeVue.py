@@ -158,7 +158,7 @@ def setupData(c):
     c.userLocals = {}               # Initialize empty user-space dict
     import os.path
     myname = os.path.splitext(os.path.basename(__file__))[0]
-    exec(f'from {myname} import Point,Post,Layout', globals(), c.userLocals)
+    exec(f'from {myname} import Point,Post,Layout\nfrom pypePlugins import FunctionList\nref=FunctionList', c.userLocals)
     c.LO = Layout()  # Start an empty layout.  LO is global.
     c.LO.clip1   =  Point(-2,-2,-0.01)
     c.LO.clip2   = Point(2,2,2)

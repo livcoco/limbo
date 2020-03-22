@@ -1,7 +1,7 @@
 # jiw March 2020
 '''Test-program for pypeVue plugins setup'''
 
-from pypeSim import Point, Post, Cylinder, Layout
+from pypeVue import Point, Post, Cylinder, Layout
 from pypePlugins import FunctionList
 from sys import _getframe
 import os.path
@@ -18,5 +18,5 @@ def thickLet(thix):
     ref = FunctionList
     print (f'len(ref.fNames) = {len(ref.fNames)},  len(ref.fList) = {len(ref.fList)},  len(ref.fDict) = {len(ref.fDict)}')
 
-def tell():
+def Xtell():
     return (postTop, runScript, scriptCyl, scriptPost, thickLet)

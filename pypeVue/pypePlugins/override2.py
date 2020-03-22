@@ -1,7 +1,7 @@
 # jiw March 2020
 '''Test-program for pypeVue plugins setup'''
 
-from pypeSim import Point, Post, Cylinder, Layout
+from pypeVue import Point, Post, Cylinder, Layout
 from pypePlugins import FunctionList as ref
 from sys import _getframe
 import os.path
@@ -18,7 +18,7 @@ def scriptPost(ss, prePost):
     saywhat()
     print (f'len(ref.fNames) = {len(ref.fNames)},  len(ref.fList) = {len(ref.fList)},  len(ref.fDict) = {len(ref.fDict)}')
 
-def tell():
+def Xtell():
     def whatFunc(layout): # Functions can be module level or local, etc
         return None
     return (addEdge, addEdges, arithmetic, autoAdder, scriptCyl,scriptPost, someFunc, whatFunc)

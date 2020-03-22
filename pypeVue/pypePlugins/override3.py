@@ -1,7 +1,7 @@
 # jiw March 2020
 '''Test-program for pypeVue plugins setup'''
 
-from pypeSim import Point, Post, Cylinder, Layout
+from pypeVue import Point, Post, Cylinder, Layout
 from pypePlugins import FunctionList as ref
 from sys import _getframe
 import os.path

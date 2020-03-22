@@ -1,0 +1,12 @@
+This script is a bit of testing for G, H, I layout codes,
+which are used for making geodesic dome layouts.
+=P postAxial=f postLabel=f postDiam=.03 postHi=.03
+=P pDiam=.904
+=L G 9 1;
+=C
+=P pDiam=.02  geoColors=PRGM
+=L G 7 1.6;
+=P pDiam=.21   geoColors=YCPA
+=L G 5 .221;
+
+

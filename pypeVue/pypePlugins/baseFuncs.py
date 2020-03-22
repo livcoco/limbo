@@ -9,16 +9,18 @@ from datetime import datetime
 from math import sqrt, pi, cos, sin, asin, atan2
 from pypeVue import ssq, sssq, rotate2, isTrue 
 from pypeVue import Point, Post, Cylinder, Layout
+from pypePlugins import FunctionList
 
 #---------------------------------------------------------
 def arithmetic(line, xTrace):
     # Remove =A and any leading whitespace, to avoid indentation error
+    ref = FunctionList
     code = line.lstrip()
-    userLocals['gg']=globals() # Allow access to globals, albeit awkward
+    ref.userLocals['gg']=globals() # Allow access to globals, albeit awkward
     if xTrace:   print (f'Code to exec:  {code}')
     try:
         if code:    # have we got any user-code?
-            exec (code, userLocals)   # yes, try to execute it
+            exec (code, ref.userLocals)   # yes, try to execute it
     except SystemExit:
         exit(0)             # allow code to exit
     except Exception:           # catch normal exceptions
@@ -27,17 +29,19 @@ def arithmetic(line, xTrace):
 #---------------------------------------------------------
 # Compute coords of a letter-point on post p
 def levelAt(lev, p):
-    a = (ord(lev)-ord(levels[0]))/(len(levels)-1) # Get portion-of-post
+    ref = FunctionList
+    a = (ord(lev)-ord(ref.levels[0]))/(len(ref.levels)-1) # Get portion-of-post
     b = 1-a                                       # Get unused portion
     pf, pt = p.foot, p.top
     return Point(round(b*pf.x+a*pt.x, 2), round(b*pf.y+a*pt.y, 2), round(b*pf.z+a*pt.z, 2))
 
 def thickLet(thix):
+    ref = FunctionList
     if thix=='p':
-        return SF*pDiam
+        return ref.SF*ref.pDiam
     else: # diameters q, r, s, t... scale geometrically
         expo = max(0, ord(thix)-ord('q'))
-        return round(SF * qDiam * pow(dRatio,expo), 2)
+        return round(ref.SF * ref.qDiam * pow(ref.dRatio, expo), 2)
 
 def addEdge(v,w, layout):
     if v in layout.edgeList:
@@ -47,11 +51,13 @@ def addEdge(v,w, layout):
         layout.edgeList[v] = [w]
 
 def addEdges(v,w, layout):
-    addEdge(v,w,layout); addEdge(w,v,layout)
+    ref = FunctionList
+    ref.addEdge(v,w,layout); ref.addEdge(w,v,layout)
 #---------------------------------------------------------
 def generatePosts(code, numberTexts):
     '''Modify layout LO according to provided code and numbers'''
-    B = LO.BP
+    ref = FunctionList
+    B = ref.LO.BP
     bx, by, bz = B.x, B.y, B.z
     nn = len(numberTexts)
     
@@ -67,11 +73,11 @@ def generatePosts(code, numberTexts):
             return None
         return nums
 
-    def postAt(x,y,z): LO.posts.append(Post(Point(x,y,z)))
+    def postAt(x,y,z): ref.LO.posts.append(Post(Point(x,y,z)))
     
     if code=='B':               # Set base point, BP
         nums = getNums(3,3)     # Need exactly 3 numbers
-        if nums:   LO.BP = Point(*nums);  return
+        if nums:   ref.LO.BP = Point(*nums);  return
 
     if code=='C':               # Create a collection of posts
         nums = getNums(3,33333) # Need at least 3 numbers
@@ -86,7 +92,7 @@ def generatePosts(code, numberTexts):
     if code=='D':      # Remove specified posts and references to them
         nums = getNums(1,33333)     # Accept any number of numbers
         if not nums: return
-        lopo = LO.posts;  nlop = len(lopo)
+        lopo = ref.LO.posts;  nlop = len(lopo)
         nums = [int(x) for x in sorted(nums)]
         error = f'{nums[0]} < 0' if nums[0] < 0 else (f'{nums[-1]} >= {nlop}' if nums[-1] >= nlop else None)
         if error:
@@ -107,15 +113,15 @@ def generatePosts(code, numberTexts):
                 transi[k] = nout;  nout += 1
         
         # We've deleted some posts; install into layout
-        del lopo;  LO.posts = polout[:nout]
+        del lopo;  ref.LO.posts = polout[:nout]
         # Remove obsolete post numbers from cylinders list
-        locy = LO.cyls;   cylout = []
+        locy = ref.LO.cyls;   cylout = []
         for c in locy:
             if not(c.post1 in nums or c.post2 in nums):
                 c.post1 = transi[c.post1]
                 c.post2 = transi[c.post2]
                 cylout.append(c)
-        del locy;  LO.cyls = cylout
+        del locy;  ref.LO.cyls = cylout
         # If we wanted autoAdd to work ok after a D operation, at this
         # point we would clean up LO.edgeList.  But we don't care...
         return
@@ -131,7 +137,7 @@ def generatePosts(code, numberTexts):
         pairs = [(int(x),int(y)) for x,y in zip(nums[::2],nums[1::2])]
         print (f'To remove: {pairs}')
         pairs = [edgecode(x,y) for x,y in pairs]
-        drops = [];   locy = LO.cyls
+        drops = [];   locy = ref.LO.cyls
         for k in range(len(locy)):
             c = locy[k]
             if edgecode(c.post1, c.post2) in pairs:
@@ -149,13 +155,14 @@ def generatePosts(code, numberTexts):
         if not nums: return
         Vfreq, gScale = int(round(nums[0])), nums[1]
         elo = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout
+        rlo = ref.LO
         # Rotation in following is not yet as advertised -- ie is normalizer not opt
-        genIcosahedron(elo, Vfreq, LO.clip1, LO.clip2, LO.rotavec.y, LO.rotavec.z)
+        genIcosahedron(elo, Vfreq, rlo.clip1, rlo.clip2, rlo.rotavec.y, rlo.rotavec.z)
         epo = elo.posts;  eel = elo.edgeList;  nLoPo = len(LO.posts)
         # Scale the generated posts by given scale; and copy to LO
         for p in epo:
             p.scale(gScale)
-            LO.posts.append(Post(p))
+            ref.LO.posts.append(Post(p))
         # Generate sets of cylinders in various colors.
         colorTrans = {'Y':geoColors[0], 'B':geoColors[1], 'R':geoColors[2], 'C':geoColors[3] }
         for co in ('Y', 'B', 'R', 'C'):
@@ -169,14 +176,14 @@ def generatePosts(code, numberTexts):
                         oR = not (oB or oY or oC)
                         if (co=='B' and oB and not oY) or (co=='Y' and oY) or (co=='R' and oR) or (co=='C' and oC):
                             cyl = Cylinder(j+nLoPo,k+nLoPo, 'c', 'c', colorTrans[co], 'p', endGap, 0, 0)
-                            LO.cyls.append(cyl)
+                            ref.LO.cyls.append(cyl)
         return
         
     if code=='H':               # Create a clip box (particularly for geodesics)
         nums = getNums(6,6)     # Need exactly 6 numbers        
         if nums:
-            LO.clip1 = Point(*nums[:3]);
-            LO.clip2 = Point(*nums[3:]);
+            ref.LO.clip1 = Point(*nums[:3]);
+            ref.LO.clip2 = Point(*nums[3:]);
         return
         
     if code=='L':               # Create a line of posts
@@ -190,7 +197,7 @@ def generatePosts(code, numberTexts):
 
     if code=='O':               # Set origin point, OP
         nums = getNums(3,3)     # Need exactly 3 numbers
-        if nums:   LO.OP = Point(*nums);  return
+        if nums:   ref.LO.OP = Point(*nums);  return
 
     if code=='P':               # Create a polygon of posts        
         nums = getNums(3,3)     # Need exactly 3 numbers
@@ -221,9 +228,10 @@ def generatePosts(code, numberTexts):
     return                      # We might fail or fall thru
 
 def postTop(p, OP):   # Given post location p, return loc. of post top
+    ref = FunctionList
     x, y, z = p.foot.x, p.foot.y, p.foot.z
-    ox, oy, oz = (x, y, z-99) if postAxial else (OP.x, OP.y, OP.z)
-    u = SF*postHi               # Distance from p to post-top
+    ox, oy, oz = (x, y, z-99) if ref.postAxial else (OP.x, OP.y, OP.z)
+    u = ref.SF*ref.postHi       # Distance from p to post-top
     v = sssq(x-ox, y-oy, z-oz)  # Distance from p to origin point
     if v>0.01:
         a, b = (u+v)/v, -u/v    # Extrapolation ratios a + b = 1
@@ -237,6 +245,7 @@ def postTop(p, OP):   # Given post location p, return loc. of post top
 
 #=========================================================
 def scriptCyl(ss, preCyl):
+    ref = FunctionList
     post1, post2, lev1, lev2, colo, thix, gap, nonPost, num = preCyl.get9()
     mode = 0                    # mode 0 = comments at start
     pc, code = '?', '?'
@@ -244,12 +253,12 @@ def scriptCyl(ss, preCyl):
         if pc == '#':       # Insert a simple variable's value
             post1, post2 = post2, userLocals[cc]
             nonPost = False
-        elif cc in colors: colo = cc
-        elif cc in thixx: thix  = cc
-        elif cc in levels:
+        elif cc in ref.colors: colo = cc
+        elif cc in ref.thixx: thix  = cc
+        elif cc in ref.levels:
             lev1, lev2 = lev2, cc
-        elif cc in digits:
-            if pc in digits:  post2 = post2 + cc
+        elif cc in ref.digits:
+            if pc in ref.digits:  post2 = post2 + cc
             else:             post1, post2 = post2, cc
             nonPost = False
         elif cc=='/':
@@ -259,32 +268,33 @@ def scriptCyl(ss, preCyl):
             if nonPost:
                 p1, p2 = p1+1, p2+1
                 post1, post2 = str(p1), str(p2)
-            num = len(LO.cyls)
+            num = len(ref.LO.cyls)
             cyl = Cylinder(p1, p2, lev1, lev2, colo, thix, gap, 0, num)
-            LO.cyls.append(cyl)
-            addEdges(p1, p2, LO) # Add edges p1,p2 and p2,p1 to edges list
+            ref.LO.cyls.append(cyl)
+            addEdges(p1, p2, ref.LO) # Add edges p1,p2 and p2,p1 to edges list
             nonPost = True
         pc = cc
     preCyl.put9(post1, post2, lev1, lev2, colo, thix, gap, nonPost, num)
     return preCyl
 #==================================
 def scriptPost(ss, prePost):
+    ref = FunctionList
     codes = 'BCDEGHILOPRST'
     pc, code, numbers = '?', '?', prePost.data
     for cc in ss:   # Process characters of script
         # Add character to number, or store a number, or what?
         if pc == '#':       # Set or use a simple variable
             if code=='?':
-                userLocals[cc] = len(LO.posts)
+                ref.userLocals[cc] = len(LO.posts)
             else:      # Substitute value into list of numbers
-                numbers.append(userLocals[cc])
-        elif cc in digits:
-            num = num + cc if pc in digits else cc
-        elif pc in digits:
+                numbers.append(ref.userLocals[cc])
+        elif cc in ref.digits:
+            num = num + cc if pc in ref.digits else cc
+        elif pc in ref.digits:
             numbers.append(num) # Add number to list of numbers
         # Process a completed entry, or start a new entry?
         if cc==';':
-            generatePosts(code, numbers)
+            ref.generatePosts(code, numbers)
             code = '?'
         elif cc in codes:
             pc, code, numbers = '?', cc, []
@@ -293,7 +303,8 @@ def scriptPost(ss, prePost):
     return
 #==================================
 def runScript(scripts):
-    preCyl = Cylinder(0, 1, 'c','c', 'G', 'p', endGap, True, 0)
+    ref = FunctionList
+    preCyl = Cylinder(0, 1, 'c','c', 'G', 'p', ref.endGap, True, 0)
     prePost = Post(0, data=[])
     mode = 0                    # mode 0 = comments at start
     numbers = []
@@ -303,74 +314,80 @@ def runScript(scripts):
         elif l2=='=L': mode = 'L'; ll=ss # Layout
         
         elif l2=='=P':          # Process Parameters line
-            installParams((ss,paramTxt));
+            ref.installParams((ss, ref.paramTxt));
             continue
         elif l2=='=A':          # Process Arithmetic line
-            arithmetic(ss, traceExec);
+            ref.arithmetic(ss, ref.traceExec);
             continue
         elif l1=='=':           # Process comment line
             continue
         
         if   mode == 'L':       # Process Posts line
-            scriptPost(ll, prePost)
+            ref.scriptPost(ll, prePost)
         elif mode == 'C':       # Process Cylinders line
-            scriptCyl (ll, preCyl)
+            ref.scriptCyl (ll, preCyl)
 #==================================
 def writePosts(fout):
-    LO.OP.scale(SF)      # Get ready to orient the posts: scale the OP
+    ref = FunctionList
+    try:
+        ref.LO.OP.scale(ref.SF) # Get ready to orient the posts: scale the OP
+    except:
+        print ('In exception, dir(ref): ', [x for x in dir(PD) if not x.startswith('__')])
     # Scale the set of posts, and compute their tops and angles 
-    pHi, pDi = SF*postHi, SF*postDiam
-    for k, p in enumerate(LO.posts):
+    pHi, pDi = ref.SF*ref.postHi, ref.SF*ref.postDiam
+    for k, p in enumerate(ref.LO.posts):
         p.num = k
-        if isTrue(zSpread):
-            zrat = 2/(1+p.foot.z/zSize) # assumes z centers at z==0
+        if isTrue(ref.zSpread):
+            zrat = 2/(1+p.foot.z/ref.zSize) # assumes z centers at z==0
             p.foot.scalexy(zrat)
-        p.foot.scale(SF)
-        if isTrue(postList):
+        p.foot.scale(ref.SF)
+        if isTrue(ref.postList):
             print (f'p{k:<2}=Point( {p.foot})')
         p.diam, p.hite = pDi, pHi
-        p.top, p.yAngle, p.zAngle = postTop(p, LO.OP)
+        p.top, p.yAngle, p.zAngle = postTop(p, ref.LO.OP)
     fout.write(f'//  onePost(num, diam, hite, yAngle, zAngle, foot x y z, top x y z);\n')
-    for p in LO.posts:
+    for p in ref.LO.posts:
         fout.write(f'    onePost({p.num}, {p.diam}, {p.hite}, {p.yAngle}, {p.zAngle}, {p.foot}, {p.top});\n')
 
 #==================================
 def writeLabels(fout):
-    if not isTrue(postLabel):
+    ref = FunctionList
+    if not isTrue(ref.postLabel):
         return
     fout.write(f'\n//  oneLabel(num, diam, hite, yAngle, zAngle, foot x y z, label x y z, tColor, tSize, txt);\n')
-    for p in LO.posts:
-        cName = colorSet['B']
-        thik  = thickLet('t')
-        lxyz  = levelAt('e', p)
-        for cc in postLabel:
-            if cc in colors: cName = colorSet[cc]
-            if cc in thixx:  thik  = thickLet(cc)
-            if cc in levels: lxyz  = levelAt(cc, p)
+    for p in ref.LO.posts:
+        cName = ref.colorSet['B']
+        thik  = ref.thickLet('t')
+        lxyz  = ref.levelAt('e', p)
+        for cc in ref.postLabel:
+            if cc in ref.colors: cName = ref.colorSet[cc]
+            if cc in ref.thixx:  thik  = ref.thickLet(cc)
+            if cc in ref.levels: lxyz  = ref.levelAt(cc, p)
         txt = f'{str(p.num)}'
         fout.write(f'    oneLabel({p.num}, {p.diam}, {p.hite}, {p.yAngle}, {p.zAngle}, {p.foot}, {lxyz}, {cName}, {thik}, "{txt}");\n')
 
 #=====================================
             
 def writeCylinders(fout, clo, chi, listIt):
+    ref = FunctionList
     fout.write('\n//  oneCyl (p1,2,cylDiam,cylLen,yAngle,zAngle,  c xyz,  e xyz, cColor)\n')
-    posts = LO.posts
+    posts = ref.LO.posts
     nPosts = len(posts)
     for nCyl in range(clo, chi):
-        cyl = LO.cyls[nCyl]     # Draw this cylinder
+        cyl = ref.LO.cyls[nCyl]     # Draw this cylinder
         post1, post2, lev1, lev2, colo, thix, gap, data, num = cyl.get9()
-        gap = SF*gap            # gap needs scaling
+        gap = ref.SF*gap            # gap needs scaling
         p1, p2 = min(post1,nPosts-1), min(post2,nPosts-1)
         try:
             pp, qq = posts[p1], posts[p2]
         except:
             print (f'Fatal Error with p1= {p1},   p2= {p2},  nPosts {nPosts}')
             exit(0)
-        p = levelAt(lev1, pp)
-        q = levelAt(lev2, qq)
+        p = ref.levelAt(lev1, pp)
+        q = ref.levelAt(lev2, qq)
         dx, dy, dz = q.diff(p)
         L = round(max(0.1, sssq(dx,  dy,  dz)), 2)
-        cName = colorSet[colo]
+        cName = ref.colorSet[colo]
         alpha = gap/L
         cc = Point(p.x+alpha*dx, p.y+alpha*dy, p.z+alpha*dz)
         cylNum= 1000*p1 + p2
@@ -382,10 +399,12 @@ def writeCylinders(fout, clo, chi, listIt):
 
 #-------------------------------------------------------------
 def autoAdder(fout):    # See if we need to auto-add cylinders
-    cutoff = autoMax
-    clo = len(LO.cyls) # Record how many cylinders are already processed
-    nPosts = len(LO.posts)
-    edgeList = LO.edgeList
+    ref = FunctionList
+    rlo = ref.LO
+    cutoff = ref.autoMax
+    clo = len(rlo.cyls) # Record how many cylinders are already processed
+    nPosts = len(rlo.posts)
+    edgeList = rlo.edgeList
     # in this version punt color, thix, levels ...
     colo, thix, lev1, lev2 = 'B', 'p', 'c','c'
             
@@ -393,9 +412,9 @@ def autoAdder(fout):    # See if we need to auto-add cylinders
         print (f'In auto-add, cutoff distance autoMax is {cutoff:7.3f}')
         cutoff2 = cutoff*cutoff
         for pn in range(nPosts):
-            p = LO.posts[pn].foot
+            p = rlo.posts[pn].foot
             for qn in range(1+pn, nPosts):
-                q = LO.posts[qn].foot
+                q = rlo.posts[qn].foot
                 dx, dy, dz = p.diff(q)
                 if abs(dx) > cutoff or abs(dy) > cutoff:
                     continue
@@ -403,10 +422,10 @@ def autoAdder(fout):    # See if we need to auto-add cylinders
                 if d2 > cutoff2: continue
                 if pn not in edgeList or qn not in edgeList[pn]:
                     post1, post2 = str(pn), str(qn)          
-                    cyl = Cylinder(pn,qn, lev1, lev2, colo, thix, endGap, 0,0)
-                    LO.cyls.append(cyl)
+                    cyl = Cylinder(pn,qn, lev1, lev2, colo, thix, ref.endGap, 0,0)
+                    rlo.cyls.append(cyl)
                     addEdges(pn, qn, LO)
-        writeCylinders(fout, clo, len(LO.cyls), autoList)
+        writeCylinders(fout, clo, len(rlo.cyls), ref.autoList)
 #-------------------------------------------------------------
 def installParams(script):
     '''Given script lines that are Parameter-setting lines, this extracts
@@ -414,7 +433,8 @@ def installParams(script):
     var3=val3 ...".  It converts the values to numeric forms, and
     stores them in globals() dict.  Note, white space is taboo within
     a var=val item.    '''
-    flubs, glob = False,  globals()
+    ref = FunctionList
+    flubs = False
     for parTxt in script:
         plist = parTxt.split()       # Split the list on white space
         for vev in plist:
@@ -422,18 +442,19 @@ def installParams(script):
             q, ok = '', False
             if len(pq)==2:
                 p, q = pq
-                if p in glob.keys():
-                    t, v = type(glob[p]), q
+                #if p in glob.keys():
+                if p in dir(ref):
+                    t, v = type(getattr(ref, p)), q
                     try:
                         if   t==int:   v = int(q);     ok=True
                         elif t==float: v = float(q);   ok=True
                         elif t==bool:  v = isTrue(q);  ok=True
                         elif t==str:   v = q;          ok=True
                     except:  pass
-            if ok: glob[p] = v
+            if ok: setattr(ref,p,v)
             else:  flubs = True
         if flubs: print (f'Parameter-setting fail in "{parTxt}"')
-
+#-------------------------------------------------------------
 def loadScriptFile(fiName):   # Read scripts from file
     with open(fiName) as fi:
         return fi.readlines()

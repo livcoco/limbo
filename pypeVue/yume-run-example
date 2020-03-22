@@ -1,6 +1,6 @@
 #!/bin/sh
 # yume-run-example - Makes menu to run pypeVue with its examples
-# jiw 21 Mar 2020
+# jiw 21 Mar 2020 
 L=""
 for i in eg-*; do
 	L="$L -bu -la $i 'echo; echo Processing $i; ./pypeVue.py f=$i'"

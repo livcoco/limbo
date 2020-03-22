@@ -3,6 +3,6 @@
 # jiw 21 Mar 2020
 L=""
 for i in eg-*; do
-    [ "${i%scad}" = "$i" ] && L="$L -bu -la ' Run $i' 'echo; echo Processing $i; ./pypeVue.py f=$i' -la 'Show $i' 'echo; echo File $i at `date`; echo; cat $i; echo'"
+    [ "${i%.scad}" = "$i" ] && L="$L -bu -la ' Run $i' 'echo; echo Processing $i; ./pypeVue.py f=$i' -la 'Show $i' 'echo; echo File $i at `date`; echo; cat $i; echo'"
 done
 echo $L  | xargs yume -at 506x654+1074+747 -bw aa -ex

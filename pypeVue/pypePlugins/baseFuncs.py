@@ -40,6 +40,7 @@ def thickLet(thix):
     if thix=='p':
         return ref.SF*ref.pDiam
     else: # diameters q, r, s, t... scale geometrically
+        print (f'thix {thix}')
         expo = max(0, ord(thix)-ord('q'))
         return round(ref.SF * ref.qDiam * pow(ref.dRatio, expo), 2)
 
@@ -285,7 +286,7 @@ def scriptPost(ss, prePost):
         # Add character to number, or store a number, or what?
         if pc == '#':       # Set or use a simple variable
             if code=='?':
-                ref.userLocals[cc] = len(LO.posts)
+                ref.userLocals[cc] = len(ref.LO.posts)
             else:      # Substitute value into list of numbers
                 numbers.append(ref.userLocals[cc])
         elif cc in ref.digits:

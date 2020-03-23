@@ -86,7 +86,20 @@ These functions control how pypeVue gets and treats its inputs and how
 it produces its output.  If you want to change intrinsic functionality
 of some part of the program, you can copy the relevant function from
 baseFuncs.py into your own module, and modify it to produce what you
-need in your own application.
+need in your own application.  The calling sequence (the set of
+function parameters) for any function should not be changed.
+
+User functions are those functions defined in a plugins module, and
+listed in a tell() statement, that have names not equal to any
+functional function.  If you call your user function only within an
+arithmetic section of a script, you can write it to take whatever
+arguments seem suitable.  However, if your function will be invoked by
+a U code in a layout section, then a call to it will look like
+userfunc(ref, p1, p2) or userfunc(ref, p1, p2, p3, p4) etc depending
+on how many numerical parameters the U code gives it.  For example, if
+"U myPIf5 1,2,4;" appears in a layout section, pypeVue will say
+something equivalent to "ref.myPIf5(ref, 1.0, 2.0, 4.0)" at that point
+in its processing.
 
 [Above description is how plugins will be implemented after 23 March;
 until then all modules in pypePlugins get scanned and loaded if there

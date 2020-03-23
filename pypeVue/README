@@ -6,6 +6,13 @@ Figures to be drawn are made up of cylinders (pipes) connected between
 locations in space (posts).  This paradigm is useful for drawing
 diagrams of geodesic domes.
 
+This file briefly describes software requirements; running the
+program; getting pypeVue to run automatically, or OpenSCAD to update
+automatically, when you change a source file; and how to create
+software plugins.
+
+--- Software requirements ---
+
 To use the program, you need to have python3 and OpenSCAD installed on
 your system.  [An early version of pypeVue ("pipeVue0.py") also
 required the `SolidPython` module, but this version does not.]
@@ -16,6 +23,8 @@ in the pypeVue directory whose names start with "eg-".  For details
 about how to write scripts, see the LibreOffice file pypeVue.dox.odt
 or PDF file pypeVue.dox.pdf.
 
+--- Running the program ---
+  
 When you run the program to process a script, it will write SCAD code
 to a file (by default, to pypeVue.scad). For example, you might say
 
@@ -29,12 +38,55 @@ might say
 which will cause OpenSCAD to read pypeVue.scad and display the created
 figure.
 
+--- Automatic updates in OpenSCAD  ---
+  
 If OpenSCAD's `Design -> Automatic Reload and Preview` option is on,
 then once you've started OpenSCAD as above, it will notice whenever
-pypeVue.scad changes, and will re-render the image.  See other
-comments (about running the program) at beginning of pypeVue.py.  For
-example, using exec-on-change as obtained at
-https://github.com/ghjwp7/plastics/blob/master/exec-on-change, you can
-have pypeVue run automatically whenever you change a script file,
-after which in its turn OpenSCAD will automatically update the
-display.
+pypeVue.scad changes, and will re-render the image.
+
+--- Automatically running pypeVue on script file changes  ---
+
+From https://github.com/ghjwp7/plastics/blob/master/exec-on-change
+obtain the exec-on-change shell script (and its requirements).  Then a
+command like that below will automatically run pypeVue whenever file
+"myscriptfile" changes.  Then OpenSCAD will see that pypeVue.scad
+changed, and will re-render.
+
+     exec-on-change myscriptfile  './pypeVue f=myscriptfile' &
+
+Other comments (about running the program) appear at the beginning of
+pypeVue.py.
+
+--- How to create software plugins ---
+
+PypeVue supports plugins, allowing individual functions used by
+pypeVue processing to be replaced.  Thus, one can customize pypeVue
+output without modifying pypeVue itself.  To create a plugin, create a
+Python module or modules in the pypeVue/pypePlugins subdirectory,
+following instructions in examples there.  In your script or on the
+command line, set parameter Plugins to a list of module names, in the
+order you want the modules processed.
+
+For example, if you have one plugin module, myPI, in file myPI.py, you
+would say "Plugins=myPI" among parameter settings.  If you had two
+plugin modules to load, myAxi and myBio, you could say either
+"Plugins=myAxi,myBio" or "Plugins=myBio,myAxi".  If some function, say
+"CrucialOp(z5)" is defined in both modules, then in the first case the
+one from myBio would be used, and in the second case, the one from
+myAxi.  In short, later-mentioned modules take precedence.
+
+Modules in pypePlugins not mentioned in the Plugins parameter setting
+do not get loaded or used.
+
+Functions defined with plugin modules can be "user functions" or
+"functional functions".  All functional functions are listed in a
+tell() statement at the end of the file pypePlugins/baseFuncs.py .
+These functions control how pypeVue gets and treats its inputs and how
+it produces its output.  If you want to change intrinsic functionality
+of some part of the program, you can copy the relevant function from
+baseFuncs.py into your own module, and modify it to produce what you
+need in your own application.
+
+[Above description is how plugins will be implemented after 23 March;
+until then all modules in pypePlugins get scanned and loaded if there
+is a tell() function.]

@@ -87,7 +87,8 @@ it produces its output.  If you want to change intrinsic functionality
 of some part of the program, you can copy the relevant function from
 baseFuncs.py into your own module, and modify it to produce what you
 need in your own application.  The calling sequence (the set of
-function parameters) for any function should not be changed.
+function parameters) for any function should not be changed
+inconsistently; if changing it one place, change it everywhere.
 
 User functions are those functions defined in a plugins module, and
 listed in a tell() statement, that have names not equal to any
@@ -101,7 +102,7 @@ on how many numerical parameters the U code gives it.  For example, if
 something equivalent to "ref.myPIf5(ref, 1.0, 2.0, 4.0)" at that point
 in its processing.
 
-[Above description is how plugins will be implemented after 23 March;
+[Above description is how plugins will be implemented after 25 March;
 until then all modules in pypePlugins get scanned and loaded if there
 is a tell() function, and neither of "Plugins=..." or "U fname
 p1,p2..." has been implemented yet.]

@@ -17,11 +17,12 @@ To use the program, you need to have python3 and OpenSCAD installed on
 your system.  [An early version of pypeVue ("pipeVue0.py") also
 required the `SolidPython` module, but this version does not.]
 
-Obtain files pypeVue.py, pypeVue.codeBase.scad, and a script file for
-the drawing you wish to make.  For script-file examples, see the files
-in the pypeVue directory whose names start with "eg-".  For details
-about how to write scripts, see the LibreOffice file pypeVue.dox.odt
-or PDF file pypeVue.dox.pdf.
+Obtain files pypeVue.py, pypeVue.codeBase.scad, pypePlugins/__init__.py,
+pypePlugins/baseFuncs.py, and a script file for the drawing you wish
+to make.  For script-file examples, see the files in the pypeVue
+directory whose names start with "eg-".  For details about how to
+write scripts, see the LibreOffice file pypeVue.dox.odt or PDF file
+pypeVue.dox.pdf.
 
 --- Running the program ---
   

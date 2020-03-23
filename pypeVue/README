@@ -103,4 +103,5 @@ in its processing.
 
 [Above description is how plugins will be implemented after 23 March;
 until then all modules in pypePlugins get scanned and loaded if there
-is a tell() function.]
+is a tell() function, and neither of "Plugins=..." or "U fname
+p1,p2..." has been implemented yet.]

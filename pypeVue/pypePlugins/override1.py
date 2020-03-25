@@ -18,5 +18,5 @@ def thickLet(thix):
     ref = FunctionList
     print (f'len(ref.fNames) = {len(ref.fNames)},  len(ref.fList) = {len(ref.fList)},  len(ref.fDict) = {len(ref.fDict)}')
 
-def Xtell():
+def tell():
     return (postTop, runScript, scriptCyl, scriptPost, thickLet)

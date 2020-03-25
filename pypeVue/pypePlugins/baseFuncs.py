@@ -444,7 +444,6 @@ def installParams(script):
             q, ok = '', False
             if len(pq)==2:
                 p, q = pq
-                #if p in glob.keys():
                 if p in dir(ref):
                     t, v = type(getattr(ref, p)), q
                     try:
@@ -457,10 +456,6 @@ def installParams(script):
             else:  flubs = True
         if flubs: print (f'Parameter-setting fail in "{parTxt}"')
 #-------------------------------------------------------------
-def loadScriptFile(fiName):   # Read scripts from file
-    with open(fiName) as fi:
-        return fi.readlines()
-#-------------------------------------------------------------
 def setClipAndRota(c):
     '''Set empty layout and set defaults for geodesic-dome clipping box
     corners and rotation vector    '''    
@@ -469,12 +464,6 @@ def setClipAndRota(c):
     c.LO.clip2   = Point(2,2,2)
     phi = (1+sqrt(5))/2;   r = sqrt(2+phi)
     c.LO.rotavec = Point(0, asin(phi/r)*180/pi, -18)    
-#-------------------------------------------------------------
-def setParamsAndScript(ref):
-    '''Install initial params (eg, f=scriptfilename) if given, and set the
-    script from builtin script or from a file'''
-    ref.installParams((ref.paramTxt,))
-    ref.scripts = ref.script1 if ref.f == '' else ref.loadScriptFile(ref.f)
 #-------------------------------------------------------------
 def setCodeFrontAndBack(c):
     c.date = datetime.datetime.today().strftime('%Y-%m-%d  %H:%M:%S')
@@ -498,7 +487,6 @@ difference() {'{'}
 
 def tell():
     return (addEdge, addEdges, arithmetic, autoAdder, generatePosts,
-            installParams, levelAt, loadScriptFile, postTop,
-            runScript, scriptCyl, scriptPost, setClipAndRota,
-            setCodeFrontAndBack, setParamsAndScript, thickLet,
+            installParams, levelAt, postTop, runScript, scriptCyl,
+            scriptPost, setClipAndRota, setCodeFrontAndBack, thickLet,
             writeCylinders, writeLabels, writePosts)

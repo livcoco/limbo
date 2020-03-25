@@ -131,6 +131,17 @@ class Layout:
     def __str__( self):
         return f'Layout: BP({self.BP})  OP({self.OP});  {len(self.posts)} posts, {len(self.cyls)} cyls'
 
+#---------------------------------------------------------
+def rotate2(a,b,theta):
+    st = sin(theta)
+    ct = cos(theta)
+    return  a*ct-b*st, a*st+b*ct
+#---------------------------------------------------------
+def isTrue(x):
+    '''Return false if x is None, or False, or an empty string, or a
+    string beginning with f, F, N, or n.  Else, return True.    '''
+    return not str(x)[:1] in 'fFNn'
+#---------------------------------------------------------
 def setupData(c):
     ref = FunctionList
     c.levels, c.thixx,  c.digits = 'abcde', 'pqrstuvw', '01234356789+-.'
@@ -146,8 +157,8 @@ def setupData(c):
     c.codeBase = f'pypeVue.codeBase.scad' # SCAD functions for posts, cyls, etc
     c.scadFile = f'pypeVue.scad'          # Name of scad output file
     c.postList = c.cylList = False # Control printing of post and cyl data
-    c.autoMax, c.autoList  = 0, True
-    c.zSpread, c.zSize, c.postAxial = False, 1, True
+    c.plugins, c.autoMax, c.autoList  = '', 0, True
+    c.zSpread, c.zSize,   c.postAxial = False, 1, True
     c.userPar0 = c.userPar1 = c.userPar2 = '""'
     c.traceExec=False
     c.geoColors = 'YBRC'          # Colors for pentagons, rings, rays, seams
@@ -160,24 +171,34 @@ def setupData(c):
     # Add classes Point, Post, Layout, FunctionList to userLocals, and ref.
     exec(f'from {myname} import Point,Post,Layout\nfrom pypePlugins import FunctionList\nref=FunctionList', c.userLocals)
 #---------------------------------------------------------
+def makePluginsList(ref):
+    pll = ''
+    for s in ref.scripts + (ref.paramTxt,):
+        # We find at most one plugins= per script line
+        j = s.find('plugins=')
+        if j > -1:
+            for c in s[j+8:]:
+                if c==' ': break
+                pll = pll + c
+            pll = pll + ','
+    return pll
+#---------------------------------------------------------
 
-def rotate2(a,b,theta):
-    st = sin(theta)
-    ct = cos(theta)
-    return  a*ct-b*st, a*st+b*ct
-
-def isTrue(x):
-    '''Return false if x is None, or False, or an empty string, or a
-    string beginning with f, F, N, or n.  Else, return True.    '''
-    return not str(x)[:1] in 'fFNn'
-    
 if __name__ == '__main__':
     t0 = time.time()
-    FunctionList.registrar()
+    FunctionList.registrar('')
     ref = FunctionList
-    setupData(ref)
+    setupData(ref) 
+    ref.installParams((ref.paramTxt,)) # Should set f, script-name parameter
+    if ref.f == '':
+        ref.scripts = ref.script1
+    else:
+        with open(ref.f) as fi:
+            ref.scripts = fi.readlines()
+    # If our command line or script names any plugins, get them registered
+    FunctionList.registrar(makePluginsList(ref))
+    
     ref.setClipAndRota(ref)   # Create LO and its clip1, clip2, rotavec vals
-    ref.setParamsAndScript(ref)   # Install initial params & get script
     ref.runScript(ref.scripts)    # Run selected script
     ref.setCodeFrontAndBack(ref)  # Set up beginning and ending SCAD code
     with open(ref.scadFile, 'w') as fout:

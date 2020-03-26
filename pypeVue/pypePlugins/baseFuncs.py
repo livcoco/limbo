@@ -387,7 +387,7 @@ def writeCylinders(fout, clo, chi, listIt):
     ref = FunctionList
     posts = ref.LO.posts
     nPosts = len(posts)
-    fout.write('''module oneCyl() (diam, cylLen, rota, trans, colo)
+    fout.write('''module oneCyl(diam, cylLen, rota, trans, colo)
     translate (v=trans) rotate(a=rota)
       color(c=colo) cylinder(d=diam, h=cylLen);
 module makeCylinders() {\n''')
@@ -413,7 +413,7 @@ module makeCylinders() {\n''')
             print (f'Make {cyl}  L {L:2.2f}  {cName}')
         yAngle = round((pi/2 - asin(dz/L)) * 180/pi, 2)
         zAngle = round( atan2(dy, dx)      * 180/pi, 2)
-        fout.write(f'''  oneCyl ({cyl.diam:0.3f}, {L-2*gap:0.3f}, [0, {yAngle:0.3f}, {zAngle:0.3f}], [{pp.foot.x:0.3f}, {pp.foot.y:0.3f}, {pp.foot.z:0.3f}], {cName});\n''')
+        fout.write(f'''  oneCyl ({cyl.diam:0.3f}, {L-2*gap:0.3f}, [0, {yAngle:0.3f}, {zAngle:0.3f}], [{cc.x:0.3f}, {cc.y:0.3f}, {cc.z:0.3f}], {cName});\n''')
     fout.write('}\n')           # close the module
 #-------------------------------------------------------------
 def autoAdder(fout):    # See if we need to auto-add cylinders
@@ -489,7 +489,6 @@ $fn = {c.cylSegments};
 userPar0 = {c.userPar0};
 userPar1 = {c.userPar1};
 userPar2 = {c.userPar2};
-{'' if c.codeBase else '//'}use <{c.codeBase}>
 {'' if c.userCode else '//'}include <{c.userCode}>
 '''
     c.backCode = f'''

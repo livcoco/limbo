@@ -173,14 +173,10 @@ def setupData(c):
 #---------------------------------------------------------
 def makePluginsList(ref):
     pll = ''
-    for s in ref.scripts + (ref.paramTxt,):
-        # We find at most one plugins= per script line
-        j = s.find('plugins=')
-        if j > -1:
-            for c in s[j+8:]:
-                if c==' ': break
-                pll = pll + c
-            pll = pll + ','
+    for lin in ref.scripts + (ref.paramTxt,): # For each line in script,
+        for s in lin.split():            # split the line on white space.
+            if s.startswith('plugins='): # If it is a plugins param,
+                pll = pll + ',' + s[8:]  # add its list to the plugins list.
     return pll
 #---------------------------------------------------------
 

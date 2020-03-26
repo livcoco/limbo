@@ -347,34 +347,50 @@ def writePosts(fout):
             print (f'p{k:<2}=Point( {p.foot})')
         p.diam, p.hite = pDi, pHi
         p.top, p.yAngle, p.zAngle = postTop(p, ref.LO.OP)
-    fout.write(f'//  onePost(num, diam, hite, yAngle, zAngle, foot x y z, top x y z);\n')
+
+    fout.write('''
+module onePost (diam, hi, yA, zA, px, py, pz)
+  translate (v=[px, py, pz]) rotate(a=[0, yA, zA])
+      cylinder(d=diam, h=hi);
+module makePosts() {
+''')
     for p in ref.LO.posts:
-        fout.write(f'    onePost({p.num}, {p.diam}, {p.hite}, {p.yAngle}, {p.zAngle}, {p.foot}, {p.top});\n')
+        fout.write(f'''  onePost({p.diam}, {p.hite}, {p.yAngle:7.3f}, {p.zAngle:7.3f},   {p.foot});
+''')
+    fout.write('}\n')           # close the module
 
 #==================================
 def writeLabels(fout):
     ref = FunctionList
     if not isTrue(ref.postLabel):
+        fout.write('module makeLabels() {}\n') # Make an empty module
         return
-    fout.write(f'\n//  oneLabel(num, diam, hite, yAngle, zAngle, foot x y z, label x y z, tColor, tSize, txt);\n')
+    cName = ref.colorSet['B']
+    thik  = ref.thickLet('t')
+    for cc in ref.postLabel:
+        if cc in ref.colors: cName = ref.colorSet[cc]
+        if cc in ref.thixx:  thik  = ref.thickLet(cc)
+    fout.write(f'''module oneLabel (offset, yA, txt, lx, ly, lz) 
+  translate (v=[lx+offset, ly+offset, lz+offset])
+    rotate([0, yA, 0]) color(c={cName}) text(size={thik:0.3f}, text=txt);
+module makeLabels() {'{'}\n''')
     for p in ref.LO.posts:
-        cName = ref.colorSet['B']
-        thik  = ref.thickLet('t')
         lxyz  = ref.levelAt('e', p)
         for cc in ref.postLabel:
-            if cc in ref.colors: cName = ref.colorSet[cc]
-            if cc in ref.thixx:  thik  = ref.thickLet(cc)
             if cc in ref.levels: lxyz  = ref.levelAt(cc, p)
-        txt = f'{str(p.num)}'
-        fout.write(f'    oneLabel({p.num}, {p.diam}, {p.hite}, {p.yAngle}, {p.zAngle}, {p.foot}, {lxyz}, {cName}, {thik}, "{txt}");\n')
+        fout.write(f'''  oneLabel({p.diam/3:0.3f}, {p.yAngle:0.3f}, "{str(p.num)}",  {str(lxyz)});\n''')
+    fout.write('}\n')           # close the module
 
 #=====================================
-            
+
 def writeCylinders(fout, clo, chi, listIt):
     ref = FunctionList
-    fout.write('\n//  oneCyl (p1,2,cylDiam,cylLen,yAngle,zAngle,  c xyz,  e xyz, cColor)\n')
     posts = ref.LO.posts
     nPosts = len(posts)
+    fout.write('''module oneCyl() (diam, cylLen, rota, trans, colo)
+    translate (v=trans) rotate(a=rota)
+      color(c=colo) cylinder(d=diam, h=cylLen);
+module makeCylinders() {\n''')
     for nCyl in range(clo, chi):
         cyl = ref.LO.cyls[nCyl]     # Draw this cylinder
         post1, post2, lev1, lev2, colo, thix, gap, data, num = cyl.get9()
@@ -397,8 +413,8 @@ def writeCylinders(fout, clo, chi, listIt):
             print (f'Make {cyl}  L {L:2.2f}  {cName}')
         yAngle = round((pi/2 - asin(dz/L)) * 180/pi, 2)
         zAngle = round( atan2(dy, dx)      * 180/pi, 2)
-        fout.write(f'    oneCyl({p1}, {p2}, {cyl.diam}, {round(L-2*gap,3)}, {yAngle}, {zAngle}, {cc}, {pp.foot}, {cName});\n')
-
+        fout.write(f'''  oneCyl ({cyl.diam:0.3f}, {L-2*gap:0.3f}, [0, {yAngle:0.3f}, {zAngle:0.3f}], [{pp.foot.x:0.3f}, {pp.foot.y:0.3f}, {pp.foot.z:0.3f}], {cName});\n''')
+    fout.write('}\n')           # close the module
 #-------------------------------------------------------------
 def autoAdder(fout):    # See if we need to auto-add cylinders
     ref = FunctionList
@@ -475,14 +491,14 @@ userPar1 = {c.userPar1};
 userPar2 = {c.userPar2};
 {'' if c.codeBase else '//'}use <{c.codeBase}>
 {'' if c.userCode else '//'}include <{c.userCode}>
-difference() {'{'}
-  union() {'{'}
 '''
-    c.backCode = f'''\n
-    addOn({c.SF}, {c.LO.BP}, {c.LO.OP}); // unscaled BP, OP
-  {'}'}
-  subOff ({c.SF}, {c.LO.BP}, {c.LO.OP}); // unscaled BP, OP
-{'}'}'''
+    c.backCode = f'''
+union() {'{'}
+  makePosts();
+  makeLabels();
+  makeCylinders();
+{'}'}
+'''
 #-------------------------------------------------------------
 
 def tell():

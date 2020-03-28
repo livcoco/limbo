@@ -157,7 +157,7 @@ def setupData(c):
     c.codeBase = f'pypeVue.codeBase.scad' # SCAD functions for posts, cyls, etc
     c.scadFile = f'pypeVue.scad'          # Name of scad output file
     c.postList = c.cylList = False # Control printing of post and cyl data
-    c.plugins, c.autoMax, c.autoList  = '', 0, True
+    c.Plugins, c.autoMax, c.autoList  = '', 0, True
     c.zSpread, c.zSize,   c.postAxial = False, 1, True
     c.userPar0 = c.userPar1 = c.userPar2 = '""'
     c.traceExec=False
@@ -173,9 +173,9 @@ def setupData(c):
 #---------------------------------------------------------
 def makePluginsList(ref):
     pll = ''
-    for lin in ref.scripts + (ref.paramTxt,): # For each line in script,
+    for lin in list(ref.scripts) + [ref.paramTxt]: # For each line in script,
         for s in lin.split():            # split the line on white space.
-            if s.startswith('plugins='): # If it is a plugins param,
+            if s.startswith('Plugins='): # If it is a plugins param,
                 pll = pll + ',' + s[8:]  # add its list to the plugins list.
     return pll
 #---------------------------------------------------------
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     FunctionList.registrar('')
     ref = FunctionList
     setupData(ref) 
-    ref.installParams((ref.paramTxt,)) # Should set f, script-name parameter
+    ref.installParams([ref.paramTxt]) # Should set f, script-name parameter
     if ref.f == '':
         ref.scripts = ref.script1
     else:
@@ -201,7 +201,8 @@ if __name__ == '__main__':
         fout.write(ref.frontCode)
         ref.writePosts    (fout)
         ref.writeLabels   (fout)
-        ref.writeCylinders(fout, 0, len(ref.LO.cyls), ref.cylList)
+        ref.writeCylinders(fout, 0, len(ref.LO.cyls), ref.cylList,
+                           1 if ref.autoMax>0 else 3)
         ref.autoAdder     (fout)
         fout.write(ref.backCode)
     t1 = time.time()-t0

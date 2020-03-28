@@ -66,43 +66,48 @@ output without modifying pypeVue itself.  To create a plugin, create a
 Python module or modules in the pypeVue/pypePlugins subdirectory,
 following instructions in examples there.  In your script or on the
 command line, set parameter Plugins to a list of module names, in the
-order you want the modules processed.
+order you want the modules processed.  If there are several Plugins
+settings, their module lists are concatenated together in the order of
+appearance, ending with Plugins settings from the command line.
+Modules in pypeVue/pypePlugins that are not mentioned in a Plugins
+parameter setting do not get loaded or used.
 
-For example, if you have one plugin module, myPI, in file myPI.py, you
-would say "Plugins=myPI" among parameter settings.  If you had two
-plugin modules to load, myAxi and myBio, you could say either
-"Plugins=myAxi,myBio" or "Plugins=myBio,myAxi".  If some function, say
-"CrucialOp(z5)" is defined in both modules, then in the first case the
-one from myBio would be used, and in the second case, the one from
-myAxi.  In short, later-mentioned modules take precedence.
+For example, if you want to use one plugin module, myPI (or, file
+myPI.py in pypeVue/pypePlugins), you would say "Plugins=myPI" among
+parameter settings.  If you had two plugin modules to load, myAxi and
+myBio, you could say "Plugins=myAxi,myBio", or "Plugins=myBio,myAxi",
+or "Plugins=myBio Plugins=myAxi", etc.  If some function, say
+"CrucialOp(z5)" is defined in both of myAxi and myBio, then in the
+first case the one from myBio is used, and in the other cases, the one
+from myAxi is used.  In short, later-mentioned modules take
+precedence.
 
-Modules in pypePlugins not mentioned in the Plugins parameter setting
-do not get loaded or used.
+--- User functions vs Base functions ---
 
-Functions defined with plugin modules can be "user functions" or
-"functional functions".  All functional functions are listed in a
-tell() statement at the end of the file pypePlugins/baseFuncs.py .
-These functions control how pypeVue gets and treats its inputs and how
-it produces its output.  If you want to change intrinsic functionality
-of some part of the program, you can copy the relevant function from
-baseFuncs.py into your own module, and modify it to produce what you
-need in your own application.  The calling sequence (the set of
-function parameters) for any function should not be changed
-inconsistently; if changing it one place, change it everywhere.
+Functions defined with plugin modules can be "user functions" or "base
+functions".
 
-User functions are those functions defined in a plugins module, and
-listed in a tell() statement, that have names not equal to any
-functional function.  If you call your user function only within an
-arithmetic section of a script, you can write it to take whatever
-arguments seem suitable.  However, if your function will be invoked by
-a U code in a layout section, then a call to it will look like
-userfunc(ref, p1, p2) or userfunc(ref, p1, p2, p3, p4) etc depending
-on how many numerical parameters the U code gives it.  For example, if
-"U myPIf5 1,2,4;" appears in a layout section, pypeVue will say
-something equivalent to "ref.myPIf5(ref, 1.0, 2.0, 4.0)" at that point
-in its processing.
+Base functions (as listed in a tell() statement at the end of
+baseFuncs.py) control how pypeVue gets and treats its inputs and how
+it produces its output.  To change intrinsic functionality of some
+part of the program, copy the relevant function from baseFuncs.py into
+your own module, and modify it to produce what you need in your own
+application.  If you change any base function calling sequences,
+change all uses for consistency.  If you want to call an original base
+function from your substitute for it, import it from baseFuncs and
+refer to it via the import.  For example, a substitute for addEdge
+could import the base version of addEdge via "from
+pypePlugins.baseFuncs import addEdge as baseAddEdge" and could call it
+via "baseAddEdge(v,w, layout)" or similar.
 
-[Above description is how plugins will be implemented after 25 March;
-until then all modules in pypePlugins get scanned and loaded if there
-is a tell() function, and neither of "Plugins=..." or "U fname
-p1,p2..." has been implemented yet.]
+User functions have names not equal to any base function.  That is, a
+functions defined in a plugins module and listed in a tell() statement
+is a user function if it isn't a base function.  If you call your user
+function only within an arithmetic section of a script, you can write
+it to take whatever arguments seem suitable.  However, if your
+function will be invoked by a U code in a layout section, then a call
+to it will look like userfunc(ref, p1, p2) or userfunc(ref, p1, p2,
+p3, p4) etc depending on how many numerical parameters the U code
+gives it.  For example, if "U myPIf5 1,2,4;" appears in a layout
+section, pypeVue will say something equivalent to "ref.myPIf5(ref,
+1.0, 2.0, 4.0)" at that point in its processing.  

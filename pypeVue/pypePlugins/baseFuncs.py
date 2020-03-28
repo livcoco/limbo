@@ -56,12 +56,13 @@ def addEdges(v,w, layout):
     ref = FunctionList
     ref.addEdge(v,w,layout); ref.addEdge(w,v,layout)
 #---------------------------------------------------------
-def generatePosts(code, numberTexts):
+def generatePosts(code, numberTexts, func):
     '''Modify layout LO according to provided code and numbers'''
     ref = FunctionList
     B = ref.LO.BP
     bx, by, bz = B.x, B.y, B.z
     nn = len(numberTexts)
+    Lots = 99999
     
     def getNums(j, k): # Get list of values from list of number strings
         nums = []
@@ -82,7 +83,7 @@ def generatePosts(code, numberTexts):
         if nums:   ref.LO.BP = Point(*nums);  return
 
     if code=='C':               # Create a collection of posts
-        nums = getNums(3,33333) # Need at least 3 numbers
+        nums = getNums(3,Lots) # Need at least 3 numbers
         if nums:
             while len(nums) >= 3:
                 postAt(nums[0]+bx,  nums[1]+by, nums[2]+bz)
@@ -92,7 +93,7 @@ def generatePosts(code, numberTexts):
             return
 
     if code=='D':      # Remove specified posts and references to them
-        nums = getNums(1,33333)     # Accept any number of numbers
+        nums = getNums(1,Lots)     # Accept 1 or more numbers
         if not nums: return
         lopo = ref.LO.posts;  nlop = len(lopo)
         nums = [int(x) for x in sorted(nums)]
@@ -134,7 +135,7 @@ def generatePosts(code, numberTexts):
     #def edgecode(e,f): return max(e,f) + 262144*min(e,f)
     def edgecode(e,f): return max(e,f) + 1000*min(e,f)
     if code=='E':               # Exclude edges -- remove some cylinders
-        nums = getNums(1,33333)     # Accept any number of numbers
+        nums = getNums(1,Lots)     # Accept 1 or more numbers
         if not nums: return  
         pairs = [(int(x),int(y)) for x,y in zip(nums[::2],nums[1::2])]
         print (f'To remove: {pairs}')
@@ -227,6 +228,8 @@ def generatePosts(code, numberTexts):
                     x += dx
                 y += dy
             return
+    if code=='U':               # Call a function
+        f = ref[func](*getNums(0,Lots))
     return                      # We might fail or fall thru
 
 def postTop(p, OP):   # Given post location p, return loc. of post top
@@ -281,14 +284,24 @@ def scriptCyl(ss, preCyl):
 #==================================
 def scriptPost(ss, prePost):
     ref = FunctionList
-    codes = 'BCDEGHILOPRST'
-    pc, code, numbers = '?', '?', prePost.data
+    codes = 'BCDEGHILOPRSTU'
+    pc, code, numbers, glom = '?', '?', prePost.data, ''
+    getGlom = False
     for cc in ss:   # Process characters of script
         # Add character to number, or store a number, or what?
+        if getGlom:
+            if getGlom > 1:
+                if cc==' ' or cc==';':
+                    getGlom = 0
+                else: glom = glom + cc
+            else:
+                if cc != ' ':
+                    getGlom = 2;
+                    glom = cc
         if pc == '#':       # Set or use a simple variable
-            if code=='?':
+            if code=='?':   # If between codes, store post count
                 ref.userLocals[cc] = len(ref.LO.posts)
-            else:      # Substitute value into list of numbers
+            else: # Substitute simple value into list of numbers
                 numbers.append(ref.userLocals[cc])
         elif cc in ref.digits:
             num = num + cc if pc in ref.digits else cc
@@ -296,10 +309,11 @@ def scriptPost(ss, prePost):
             numbers.append(num) # Add number to list of numbers
         # Process a completed entry, or start a new entry?
         if cc==';':
-            ref.generatePosts(code, numbers)
+            ref.generatePosts(code, numbers, glom)
             code = '?'
         elif cc in codes:
-            pc, code, numbers = '?', cc, []
+            pc, code, numbers, glom = '?', cc, [], ''
+            getGlom = 1 if code=='U' else 0
         pc = cc             # Prep to get next character
     prePost.data = numbers
     return
@@ -346,7 +360,7 @@ def writePosts(fout):
         if isTrue(ref.postList):
             print (f'p{k:<2}=Point( {p.foot})')
         p.diam, p.hite = pDi, pHi
-        p.top, p.yAngle, p.zAngle = postTop(p, ref.LO.OP)
+        p.top, p.yAngle, p.zAngle = ref.postTop(p, ref.LO.OP)
 
     fout.write('''
 module onePost (diam, hi, yA, zA, px, py, pz)
@@ -383,14 +397,20 @@ module makeLabels() {'{'}\n''')
 
 #=====================================
 
-def writeCylinders(fout, clo, chi, listIt):
+def writeCylinders(fout, clo, chi, listIt, startFin):
+    '''Write openSCAD code to generate pipes between posts.  We process
+    from cylinder clo to chi-1, printing cylinder data if listIt is
+    true.  Integer startFin controls whether module prefix and suffix
+    code is written.  0=neither, 1=prefix, 2=suffix, 3=both    '''
     ref = FunctionList
     posts = ref.LO.posts
     nPosts = len(posts)
-    fout.write('''module oneCyl(diam, cylLen, rota, trans, colo)
+    if startFin & 1:
+        fout.write('''module oneCyl(diam, cylLen, rota, trans, colo)
     translate (v=trans) rotate(a=rota)
       color(c=colo) cylinder(d=diam, h=cylLen);
 module makeCylinders() {\n''')
+
     for nCyl in range(clo, chi):
         cyl = ref.LO.cyls[nCyl]     # Draw this cylinder
         post1, post2, lev1, lev2, colo, thix, gap, data, num = cyl.get9()
@@ -414,7 +434,9 @@ module makeCylinders() {\n''')
         yAngle = round((pi/2 - asin(dz/L)) * 180/pi, 2)
         zAngle = round( atan2(dy, dx)      * 180/pi, 2)
         fout.write(f'''  oneCyl ({cyl.diam:0.3f}, {L-2*gap:0.3f}, [0, {yAngle:0.3f}, {zAngle:0.3f}], [{cc.x:0.3f}, {cc.y:0.3f}, {cc.z:0.3f}], {cName});\n''')
-    fout.write('}\n')           # close the module
+
+    if startFin & 2:
+        fout.write('}\n')           # close the module
 #-------------------------------------------------------------
 def autoAdder(fout):    # See if we need to auto-add cylinders
     ref = FunctionList
@@ -443,7 +465,7 @@ def autoAdder(fout):    # See if we need to auto-add cylinders
                     cyl = Cylinder(pn,qn, lev1, lev2, colo, thix, ref.endGap, 0,0)
                     rlo.cyls.append(cyl)
                     ref.addEdges(pn, qn, ref.LO)
-        writeCylinders(fout, clo, len(rlo.cyls), ref.autoList)
+        writeCylinders(fout, clo, len(rlo.cyls), ref.autoList, 2)
 #-------------------------------------------------------------
 def installParams(script):
     '''Given script lines that are Parameter-setting lines, this extracts

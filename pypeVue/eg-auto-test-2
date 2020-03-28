@@ -34,7 +34,7 @@ layout section.  postLabel=cMu makes labels at level c, magenta, size u.
 =P  postHi=0.2     postDiam=0.08  autoList=f
 =P  pDiam=0.04     endGap=0       postList=f     cylList=f
 =P  zSpread=t      zSize=6        autoMax=227
-=P  userPar0=400   userPar1=800   userCode=eg-auto-help-2.scad
+=P  userPar0=400   userPar1=800   Plugins=autoHelper
 
 =L   The O entry specifies OP
 O 0 0 0;

@@ -433,7 +433,8 @@ module makeCylinders() {\n''')
         cylNum= 1000*p1 + p2
         if isTrue(listIt):
             print (f'Make {cyl}  L {L:2.2f}  {cName}')
-        yAngle = round((pi/2 - asin(dz/L)) * 180/pi, 2)
+        # Use min/max to avoid exception from dz/L numerical error
+        yAngle = round((pi/2 - asin(min(1, max(-1, dz/L)))) * 180/pi, 2)
         zAngle = round( atan2(dy, dx)      * 180/pi, 2)
         fout.write(f'''  oneCyl ({cyl.diam:0.3f}, {L-2*gap:0.3f}, [0, {yAngle:0.3f}, {zAngle:0.3f}], [{cc.x:0.3f}, {cc.y:0.3f}, {cc.z:0.3f}], {cName});\n''')
 

@@ -321,6 +321,7 @@ def scriptPost(ss, prePost):
 def runScript(scripts):
     ref = FunctionList
     preCyl = Cylinder(0, 1, 'c','c', 'G', 'p', ref.endGap, True, 0)
+    #print (f'runScript: preCyl = {preCyl}  preCyl.gap={preCyl.gap}  ref.endGap={ref.endGap}')
     prePost = Post(0, data=[])
     mode = 0                    # mode 0 = comments at start
     numbers = []
@@ -341,6 +342,7 @@ def runScript(scripts):
         if   mode == 'L':       # Process Posts line
             ref.scriptPost(ll, prePost)
         elif mode == 'C':       # Process Cylinders line
+            preCyl.gap = ref.endGap
             ref.scriptCyl (ll, preCyl)
 #==================================
 def writePosts(fout):

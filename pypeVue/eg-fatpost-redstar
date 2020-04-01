@@ -2,10 +2,9 @@ Draws tall thick posts (due to postDiam=.3)
 with extra cylinder stickout (due to endGap=-1.95)
 
 =P pDiam=0.17  dRatio=1.33  endGap=-1.95 postHi=2 postDiam=.3
-=A print(f'endGap is {ref.endGap:0.3f}')
-=L
-  C 0,0,0; P5,1,0;
+=A lg=-0.5; print(f'endGap is {ref.endGap:0.3f} and later will be {lg}')
+=L C 0,0,0; P5,1,0;
+=C Gpae 1,2;;;;1;  Rpcc 1,2;;;;1;
+=A ref.endGap = lg
+=C P0a0e;
 
-=C
-  Gpae 1,2;;;;1;
-  Rpcc 1,2;;;;1;

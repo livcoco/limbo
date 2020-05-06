@@ -504,7 +504,9 @@ def setClipAndRota(c):
     c.LO.clip1   =  Point(-2,-2,-0.01)
     c.LO.clip2   = Point(2,2,2)
     phi = (1+sqrt(5))/2;   r = sqrt(2+phi)
-    c.LO.rotavec = Point(0, asin(phi/r)*180/pi, -18)    
+    # Set default Z rotation to 0 instead of -18, so that FRA2 works
+    # ok in makeIcosaGeo genIcosahedron()
+    c.LO.rotavec = Point(0, asin(phi/r)*180/pi, 0) # X,Y,Z rotations
 #-------------------------------------------------------------
 def setCodeFrontAndBack(c):
     c.date = datetime.datetime.today().strftime('%Y-%m-%d  %H:%M:%S')

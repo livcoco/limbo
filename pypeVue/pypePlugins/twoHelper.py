@@ -74,7 +74,13 @@ module makePosts() {
     fout.write('}\n')           # close the module
 
 #---------------------------------------------------------
-def writeCylinders(fout, clo, chi, listIt):
+def writeCylinders(fout, clo, chi, listIt, startFin):
+    '''Write (to fout) openSCAD code with modules roundEnds and oneCyl
+    that will make pipes between posts.  Next, process from cylinder
+    clo to chi-1, writing scad calls to fout and also printing
+    cylinder data if listIt is true.  In baseFuncs, integer startFin
+    controls whether module prefix and suffix code is written, but in
+    this plugin we ignore startFin.    '''
     posts = ref.LO.posts
     nPosts = len(posts)
     fout.write('''

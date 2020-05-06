@@ -99,7 +99,7 @@ def generatePosts(code, numberTexts, func):
         nums = [int(x) for x in sorted(nums)]
         error = f'{nums[0]} < 0' if nums[0] < 0 else (f'{nums[-1]} >= {nlop}' if nums[-1] >= nlop else None)
         if error:
-            print (f'Error: List of post numbers has a value {error} -- terminating.')
+            print (f'Error: List of post numbers for =L D code has an out-of-range value; {error} -- terminating.')
             exit(0)
 
         print (f'=  From {nlop} posts, deleting {len(nums)} of them: {nums}')
@@ -156,15 +156,15 @@ def generatePosts(code, numberTexts, func):
         from makeIcosaGeo import genIcosahedron
         nums = getNums(2,2)     # Need exactly 2 numbers
         if not nums: return
-        Vfreq, gScale = int(round(nums[0])), nums[1]
+        geoFreq, geoScale = int(round(nums[0])), nums[1]
         elo = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout
         rlo = ref.LO
         # Rotation in following is not yet as advertised -- ie is normalizer not opt
-        genIcosahedron(elo, Vfreq, rlo.clip1, rlo.clip2, rlo.rotavec.y, rlo.rotavec.z)
+        genIcosahedron(elo, geoFreq, rlo.clip1, rlo.clip2, rlo.rotavec.y, rlo.rotavec.z)
         epo = elo.posts;  eel = elo.edgeList;  nLoPo = len(rlo.posts)
         # Scale the generated posts by given scale; and copy to LO
         for p in epo:
-            p.scale(gScale)
+            p.scale(geoScale)
             rlo.posts.append(Post(p))
         # Generate sets of cylinders in various colors.
         colorTrans = {'Y':ref.geoColors[0], 'B':ref.geoColors[1], 'R':ref.geoColors[2], 'C':ref.geoColors[3] }

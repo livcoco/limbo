@@ -3,7 +3,16 @@
 # jiw 26 Dec 2018
 '''A program that generates OpenSCAD code for tubes along selected
 edges between `posts` in a plane.  This supports visualization of
-arrangements of edges in geodesic dome structures.'''
+arrangements of edges in geodesic dome structures.
+
+development:
+  ln -s <path to project>/src/geodome ~/.local/lib/python3.6/site-packages/.
+  ln -s <path to project>/src/geodome/geo_dome.py ~/.local/bin/geo_dome
+  create a separate working directory to run in and:
+  copy an xml file from ~/.local/lib/python3.6/site-packages/geodome/examples/
+  geo_dome <yours>.xml
+
+'''
 
 # This program processes a layout script and a cylinders script, while
 # generating an output file containing OpenSCAD code to represent the
@@ -56,7 +65,7 @@ arrangements of edges in geodesic dome structures.'''
 from sys import argv, exit, exc_info, stderr
 import time, datetime
 from math import sqrt, pi, cos, sin, asin, atan2
-from pypePlugins import FunctionList
+from pypevue.pypePlugins import FunctionList
 from os import path
 
 def ssq(x,y,z):    return x*x + y*y + z*z

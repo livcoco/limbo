@@ -4,17 +4,18 @@
 # This is rough code for testing generation of geodesic dome point
 # coordinates and edges.  Clipping-box parameters allow some control
 # over how much of the sphere is generated.  The orientation of the
-# icosahedron has two controls: z angle and y angle rotation.  At
-# present, frequency, limits, and angles are hardcoded, near line 114.
+# icosahedron has two controls: z angle and y angle rotation.
 # To see an example, try eg:
 
 #       ./makeIcosaGeo.py > t1-v; ./pypeVue.py f=t1-v
+# from geo_dome:
+#       python3 -m PypeVue.makeIcosaGeo > t1-v; python3 -m PypeVue.pypeVue f=t1-v
 
-from pypeVue import Point, Layout, ssq, sssq
-from pypePlugins import FunctionList
-from pypePlugins.baseFuncs import addEdges
 from math import sqrt, pi, asin, sin, cos, atan2, tan, radians, pi, acos, degrees
-
+from pypevue.pypeVue import Point, Layout, ssq, sssq
+from pypevue.pypePlugins import FunctionList
+from pypevue.pypePlugins.baseFuncs import addEdges
+    
 Vfreq = 1     # Arbitrary initial value for global Vfreq
 
 class IcosaGeoPoint(Point):
@@ -192,8 +193,6 @@ def pointInBox (p, clip1, clip2):
 def CCW(p):    # Sort points by descending z and clockwise about z
 #    return -round(p.z*1000)-atan2(p.y,p.x)/8
     return -round(p.z*100000)-atan2(p.y,p.x)/8
-#def FRA(p):    # Sort points by rank from 0 and clockwise about z
-#    return p.rank - atan2(p.y,p.x)/8
 
 # FRA2 -- Sort points by rank from 0 and clockwise about z always
 # starting a new rank on an icosahedron edge.  Note: this only works
@@ -214,7 +213,6 @@ def FRA2(p):
             sortVal = p.rank + rads / 8
     return sortVal
 
-
 def dedupClip(phase, layi, layo, clip1, clip2):
     '''Given list of points via layi, return de-duplicated and clipped
     list etc'''
@@ -222,7 +220,7 @@ def dedupClip(phase, layi, layo, clip1, clip2):
     # eps should be smaller than actual point to point distances,
     # but larger than possible floating point rounding error.
     # For example, .001 is too big to work ok at freq=36.
-    eps = 0.00001   # Good enough for freq 36, where .001 is too big
+    eps = 0.00001
     pprev = IcosaGeoPoint(9e9, 8e8, 7e7)
     for n, p in enumerate(L): p.dex = n
     L.sort(key = CCW if phase==1 else FRA2)
@@ -263,12 +261,12 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
     where ϕ = 1 + √5/2 is the golden ratio", from
     https://en.wikipedia.org/wiki/Regular_icosahedron#Cartesian_coordinates
     '''
-    
+
     global Vfreq; Vfreq = VfreqPar
     phi = (1+sqrt(5))/2
     cornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'
     facesNote = 'aij ajf afb abe aei bfk bkl ble cdh chl clk ckg cgd dgj dji dih elh ehi fjg fgk'
-    corr1 = {'o':0, 'i':1, 'j':-1, 'p':phi, 'q':-phi}
+    corr1 = {'o':0, 'i':1, 'j':-1, 'p':phi, 'q':-phi}    
     corners = [IcosaGeoPoint(corr1[i], corr1[j], corr1[k]) for i,j,k in cornerNote.split()]
     # Rotate corners by rz, ry degrees. See:
     # https://en.wikipedia.org/wiki/Rotation_matrix#General_rotations
@@ -299,7 +297,6 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
             #print (f'=   {len(laylo1.posts):3} posts after face {i}{j}{k} skipped')
             pass
     # Have done all faces.  Now dedup & clip laylo and copy points into layin
-    #print (f'=  {len(laylo1.posts)} posts before dedup and clip')
     dedupClip(1, laylo1, laylo2, clip1, clip2)
     print (f'=  Made {len(laylo2.posts)} posts for geodesic with frequency {Vfreq}')
 
@@ -316,8 +313,7 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
                 q.pa, q.pb, q.rank = p.num, p.num, 1+p.rank
             elif p.rank < q.rank: # Is p the new mom of q?
                 q.pb = p.num
-    dedupClip(2, laylo2, layin, clip1, clip2) 
-    #for n,p in enumerate(po):  print (f'=  {n:3}.  d{p.dupl}  pa {p.pa}  pb {p.pb}')
+    dedupClip(2, laylo2, layin, clip1, clip2)
 
     #add face and step
     po = layin.posts; rank = -1; stepsPerFace = [0,0];

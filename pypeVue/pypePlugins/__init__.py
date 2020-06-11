@@ -10,10 +10,10 @@
 
 '''
 
-import os.path, sys
+#import os.path, sys
 #print ('\nIn pypePlugins, __init__.py was called')
-sys.path.insert(1, os.path.abspath(os.path.join('..', 'pypePlugins')))
-
+#sys.path.insert(1, os.path.abspath(os.path.join('..', 'pypePlugins')))
+#print('TMPDEBUG', sys.path)
 class FunctionList:
     # The next lines initialize dicts for correspondences between
     # functions and function names.

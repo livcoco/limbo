@@ -8,9 +8,9 @@ structures.'''
 from sys import argv, exit, exc_info, stderr
 import datetime
 from math import sqrt, pi, cos, sin, asin, atan2
-from pypeVue import ssq, sssq, rotate2, isTrue 
-from pypeVue import Point, Post, Cylinder, Layout
-from pypePlugins import FunctionList
+from pypevue.pypeVue import ssq, sssq, rotate2, isTrue 
+from pypevue.pypeVue import Point, Post, Cylinder, Layout
+from pypevue.pypePlugins import FunctionList
 
 #---------------------------------------------------------
 def arithmetic(line, xTrace):
@@ -54,7 +54,9 @@ def addEdge(v,w, layout):
 
 def addEdges(v,w, layout):
     ref = FunctionList
+    #print('TMPDEBUG', ref.__dict__)
     ref.addEdge(v,w,layout); ref.addEdge(w,v,layout)
+    #addEdge(w,v,layout)
 #---------------------------------------------------------
 def generatePosts(code, numberTexts, func):
     '''Modify layout LO according to provided code and numbers'''

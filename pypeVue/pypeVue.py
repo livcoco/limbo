@@ -57,6 +57,7 @@ from sys import argv, exit, exc_info, stderr
 import time, datetime
 from math import sqrt, pi, cos, sin, asin, atan2
 from pypePlugins import FunctionList
+from os import path
 
 def ssq(x,y,z):    return x*x + y*y + z*z
 def sssq(x,y,z):   return sqrt(ssq(x,y,z))
@@ -75,8 +76,17 @@ class Point:
         self.y = s*self.y
     def inner(self, q):         # Inner product of two 3-vectors
         return (self.x*q.x + self.y*q.y + self.z*q.z)
+    def cross(self, q):         # cross product of the two 3-vectors
+        return (self.y*q.z - self.z*q.y, self.z*q.x - self.x*q.z, self.x*q.y - self.y*q.x)
+    def norm(self):
+        mag = sssq(self.x, self.y, self.z)
+        return (self.x / mag, self.y / mag, self.z / mag)
     def diff(self, q):
         return (self.x-q.x, self.y-q.y, self.z-q.z)
+    def add(self, q):
+        return (self.x+q.x, self.y+q.y, self.z+q.z)
+    def mag(self):
+        return sssq(self.x, self.y, self.z)
     def str(self, places):
         x,y,z = (round(k,places) for k in (self.x, self.y ,self.z))
         return f'{x}, {y}, {z}'

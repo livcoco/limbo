@@ -7,9 +7,10 @@
 # icosahedron has two controls: z angle and y angle rotation.
 # To see an example, try eg:
 
+# from the pypevue directory within the source tree:
 #       ./makeIcosaGeo.py > t1-v; ./pypeVue.py f=t1-v
-# from geo_dome:
-#       python3 -m PypeVue.makeIcosaGeo > t1-v; python3 -m PypeVue.pypeVue f=t1-v
+# after installation anywher on the system:
+#       makeIcosaGeo > t1-v; pypeVue f=t1-v
 
 from math import sqrt, pi, asin, sin, cos, atan2, tan, radians, pi, acos, degrees
 from pypevue.pypeVue import Point, Layout, ssq, sssq
@@ -364,6 +365,8 @@ if __name__ == '__main__':
     print (f'=  Vfreq {Vfreq},   yAngle {yAngle},  zAngle {zAngle}')
     print (f'=  Clip box corners = {clipLo} and {clipHi}')
     LO = Layout(posts=[], cyls=[],  edgeList={}) # Init an empty layout
+
+    FunctionList.registrar('') # can add different functions here (see docs)
     # genIcosahedron will report posts per face and dedup/clip stats
     genIcosahedron(LO, Vfreq, clipLo, clipHi, yAngle, zAngle)
 

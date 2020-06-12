@@ -6,11 +6,11 @@ edges between `posts` in a plane.  This supports visualization of
 arrangements of edges in geodesic dome structures.
 
 development:
-  ln -s <path to project>/src/geodome ~/.local/lib/python3.6/site-packages/.
-  ln -s <path to project>/src/geodome/geo_dome.py ~/.local/bin/geo_dome
+  ln -s <path to project>/pypevue ~/.local/lib/python3.6/site-packages/.
+  ln -s <path to project>/pypevue/pypeVue.py ~/.local/bin/pypeVue
   create a separate working directory to run in and:
-  copy an xml file from ~/.local/lib/python3.6/site-packages/geodome/examples/
-  geo_dome <yours>.xml
+  copy an example file from ~/.local/lib/python3.6/site-packages/pypevue/
+  pypeVue <example>
 
 '''
 

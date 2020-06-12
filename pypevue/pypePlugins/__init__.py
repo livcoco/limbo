@@ -10,10 +10,6 @@
 
 '''
 
-#import os.path, sys
-#print ('\nIn pypePlugins, __init__.py was called')
-#sys.path.insert(1, os.path.abspath(os.path.join('..', 'pypePlugins')))
-#print('TMPDEBUG', sys.path)
 class FunctionList:
     # The next lines initialize dicts for correspondences between
     # functions and function names.
@@ -29,13 +25,13 @@ class FunctionList:
         registrar will get plugins from files pypePlugins/abc.py and
         pypePlugins/def.py.  A plugin mentioned in multiple files will
         be taken from the last-mentioned file. '''
-        import pypePlugins.baseFuncs, inspect, importlib
+        import pypevue.pypePlugins.baseFuncs, inspect, importlib
         ref = FunctionList
         #print (f'Registrar pll = {pll}')
         if pll=='':
             ref.fDict, ref.uDict = {}, {}
             # baseFuncs will give us a complete list of base-level functions
-            fs = pypePlugins.baseFuncs.tell()
+            fs = pypevue.pypePlugins.baseFuncs.tell()
             for f in fs: # Make canonical list of fixed function names
                 ref.fDict[f.__name__] = f
             ref.fNames = sorted(ref.fDict.keys())

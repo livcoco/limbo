@@ -54,9 +54,7 @@ def addEdge(v,w, layout):
 
 def addEdges(v,w, layout):
     ref = FunctionList
-    #print('TMPDEBUG', ref.__dict__)
     ref.addEdge(v,w,layout); ref.addEdge(w,v,layout)
-    #addEdge(w,v,layout)
 #---------------------------------------------------------
 def generatePosts(code, numberTexts, func):
     '''Modify layout LO according to provided code and numbers'''

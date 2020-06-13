@@ -62,6 +62,9 @@ development:
 #     Automatic Reload and Preview` option is on] openscad will see
 #     that $SCF changed*, and re-render its image.
 
+# to debug add:
+#import web_pdb; web_pdb.set_trace()
+
 from sys import argv, exit, exc_info, stderr
 import time, datetime
 from math import sqrt, pi, cos, sin, asin, atan2
@@ -212,7 +215,6 @@ if __name__ == '__main__':
             ref.scripts = fi.readlines()
     # If our command line or script names any plugins, get them registered
     FunctionList.registrar(makePluginsList(ref))
-    
     ref.setClipAndRota(ref)   # Create LO and its clip1, clip2, rotavec vals
     ref.runScript(ref.scripts)    # Run selected script
     ref.setCodeFrontAndBack(ref)  # Set up beginning and ending SCAD code
@@ -226,3 +228,8 @@ if __name__ == '__main__':
         fout.write(ref.backCode)
     t1 = time.time()-t0
     print (f'For script "{ref.f}", pypeVue wrote code to {ref.scadFile} at {ref.date} in {t1:0.3f} seconds')
+
+'''
+failing examples
+eg-fatpost-redstar, eg-arith-test
+'''

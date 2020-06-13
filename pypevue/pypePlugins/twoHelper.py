@@ -4,9 +4,9 @@
 # and oneCyl.  - jiw 27 Mar 2020
 
 from math import sqrt, pi, cos, sin, asin, atan2
-from pypeVue import ssq, sssq, rotate2, isTrue 
-from pypeVue import Point, Post, Cylinder, Layout
-from pypePlugins import FunctionList as ref
+from pypevue.pypeVue import ssq, sssq, rotate2, isTrue 
+from pypevue.pypeVue import Point, Post, Cylinder, Layout
+from pypevue.pypePlugins import FunctionList as ref
 #---------------------------------------------------------
 def writePosts(fout):
     try:

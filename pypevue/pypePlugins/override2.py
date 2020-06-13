@@ -2,8 +2,8 @@
 # jiw March 2020
 '''Test-program for pypeVue plugins setup'''
 
-from pypeVue import Point, Post, Cylinder, Layout
-from pypePlugins import FunctionList as ref
+from pypevue.pypeVue import Point, Post, Cylinder, Layout
+from pypevue.pypePlugins import FunctionList as ref
 from sys import _getframe
 import os.path
 def saywhat():

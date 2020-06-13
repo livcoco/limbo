@@ -371,7 +371,7 @@ module onePost (diam, hi, yA, zA, px, py, pz)
 module makePosts() {
 ''')
     for p in ref.LO.posts:
-        fout.write(f'''  onePost({p.diam}, {p.hite}, {p.yAngle:7.3f}, {p.zAngle:7.3f},   {p.foot});
+        fout.write(f'''  onePost({p.diam}, {p.hite}, {p.yAngle:7.3f}, {p.zAngle:7.3f},   {p.foot.x}, {p.foot.y}, {p.foot.z});
 ''')
     fout.write('}\n')           # close the module
 
@@ -494,7 +494,9 @@ def installParams(script):
                         elif t==str:   v = q;          ok=True
                     except:  pass
             if ok: setattr(ref,p,v)
-            else:  flubs = True
+            else:
+                print(f'  failed to set parameter {pq}, {vev}')
+                flubs = True
         if flubs: print (f'Parameter-setting fail in "{parTxt}"')
 #-------------------------------------------------------------
 def setClipAndRota(c):

@@ -262,7 +262,6 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
     where ϕ = 1 + √5/2 is the golden ratio", from
     https://en.wikipedia.org/wiki/Regular_icosahedron#Cartesian_coordinates
     '''
-
     global Vfreq; Vfreq = VfreqPar
     phi = (1+sqrt(5))/2
     cornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'

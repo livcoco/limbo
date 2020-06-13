@@ -9,6 +9,9 @@
    functions work.
 
 '''
+#import os.path, sys
+#print ('\nIn pypePlugins, __init__.py was called')
+#sys.path.insert(1, os.path.abspath(os.path.join('..', 'pypePlugins')))
 
 class FunctionList:
     # The next lines initialize dicts for correspondences between

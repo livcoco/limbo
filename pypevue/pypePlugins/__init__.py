@@ -44,8 +44,9 @@ class FunctionList:
             finn = [fn for fn in pll.split(',') if fn != '']            
             #print (f'Registrar pll = {pll}, finn = {finn}')
             for pfi in finn:
-                toImp = f'{plugDir}.{pfi}'
-                m = importlib.import_module(toImp) # m is a module
+#                toImp = f'{plugDir}.{pfi}'
+#                m = importlib.import_module(toImp) # m is a module
+                m = importlib.import_module(pfi) # m is a module
                 mkeys = [obj for obj, pred in inspect.getmembers(m)]
                 # If the module contains a `tell` object, try calling it.
                 if 'tell' in mkeys:

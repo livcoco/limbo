@@ -1,7 +1,7 @@
 =P  dRatio=1.1     endGap=0 postHi=.4
 =P  postDiam=.08   pDiam=.1  qDiam=.1
 =P  postLabel=Rtc
-=P  Plugins=twoHelper     userPar0=0.01
+=P  Plugins=pypevue.pypePlugins.twoHelper     userPar0=0.01
 ===P  userCode=eg-two-helper.scad  userPar0=0.01
 
 =L

@@ -191,7 +191,7 @@ def setupData(c):
     import os.path
     myname = os.path.splitext(os.path.basename(__file__))[0]
     # Add classes Point, Post, Layout, FunctionList to userLocals, and ref.
-    exec(f'from {myname} import Point,Post,Layout\nfrom pypePlugins import FunctionList\nref=FunctionList', c.userLocals)
+    exec(f'from pypevue.{myname} import Point,Post,Layout\nfrom pypevue.pypePlugins import FunctionList\nref=FunctionList', c.userLocals)
 #---------------------------------------------------------
 def makePluginsList(ref):
     pll = ''

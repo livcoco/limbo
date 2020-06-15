@@ -58,6 +58,7 @@ def addEdges(v,w, layout):
 #---------------------------------------------------------
 def generatePosts(code, numberTexts, func):
     '''Modify layout LO according to provided code and numbers'''
+    #import web_pdb; web_pdb.set_trace()
     ref = FunctionList
     B = ref.LO.BP
     bx, by, bz = B.x, B.y, B.z
@@ -153,7 +154,7 @@ def generatePosts(code, numberTexts, func):
         return
         
     if code=='G':               # Create geodesic posts and cylinders
-        from makeIcosaGeo import genIcosahedron
+        from pypevue.makeIcosaGeo import genIcosahedron
         nums = getNums(2,2)     # Need exactly 2 numbers
         if not nums: return
         geoFreq, geoScale = int(round(nums[0])), nums[1]

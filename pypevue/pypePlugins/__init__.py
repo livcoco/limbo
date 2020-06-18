@@ -44,9 +44,11 @@ class FunctionList:
             finn = [fn for fn in pll.split(',') if fn != '']            
             #print (f'Registrar pll = {pll}, finn = {finn}')
             for pfi in finn:
-#                toImp = f'{plugDir}.{pfi}'
-#                m = importlib.import_module(toImp) # m is a module
-                m = importlib.import_module(pfi) # m is a module
+                try:
+                    toImp = f'{plugDir}.{pfi}'
+                    m = importlib.import_module(toImp) # m is a module in the pypePlugins directory
+                except ModuleNotFoundError as e:
+                    m = importlib.import_module(pfi) # m is a module somewhere else
                 mkeys = [obj for obj, pred in inspect.getmembers(m)]
                 # If the module contains a `tell` object, try calling it.
                 if 'tell' in mkeys:

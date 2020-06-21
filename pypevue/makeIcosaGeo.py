@@ -20,11 +20,12 @@ from pypevue.pypePlugins.baseFuncs import addEdges
 Vfreq = 1     # Arbitrary initial value for global Vfreq
 
 class IcosaGeoPoint(Point):
-    def __init__(self, x, y, z, rank = None, face = None, step = None, num=None, nnbrs = None, dupl = None):
+    def __init__(self, x, y, z, rank = None, face = None, step = None, stepInRank = None, num=None, nnbrs = None, dupl = None):
         super().__init__(x,y,z)
         self.rank = rank
         self.face = face
         self.step = step
+        self.stepInRank = stepInRank
         self.num = num
         self.nnbrs = nnbrs #the number of struts connected to this node
         self.dupl = dupl
@@ -315,11 +316,11 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
                 q.pb = p.num
     dedupClip(2, laylo2, layin, clip1, clip2)
 
-    #add face and step
+    #add face, step, stepInRank
     po = layin.posts; rank = -1; stepsPerFace = [0,0];
     for p in po:
         if p.rank != rank:
-            rank = p.rank; faceIdx = 0; step = 0
+            rank = p.rank; faceIdx = 0; step = 0; stepInRank = 0
             if rank == 0:
                 faces = (1,2,3,4,5)
                 stepsPerFace[0] = 0
@@ -340,7 +341,9 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
         #print(f'TMPDEBUG faces {faces}, faceIdx {faceIdx}')
         p.face = faces[faceIdx]
         p.step = step
+        p.stepInRank = stepInRank
         step += 1
+        stepInRank += 1
         #print(p)
         if rank <= Vfreq or rank >= Vfreq * 2:
             if step == stepsPerFace[0]:

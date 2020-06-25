@@ -69,6 +69,16 @@ class FunctionList:
         for n in ref.fNames: setattr(ref, n, ref.fDict[n])
         for n in ref.uNames: setattr(ref, n, ref.uDict[n])
 
+    def clear():
+        # in order to make changes to a dome which uses plugin(s) while still
+        # running the same process it is necessary to clear out the old plugin(s)
+        ref = FunctionList
+        ref.fNames = [] # names of base-level functions
+        ref.fDict  = {} # dictionary with fDict[name] = function with given name
+        ref.fTotal = [] # Raw list of function spec triples, (name, func, module)
+        # Next, the same things but for user-function plugins:
+        ref.uNames = [];    ref.uDict = {};    ref.uTotal = [] 
+    
 def tell():                     # Example of a tell() function ...
     '''A tell() function returns a list or tuple of functions.  Each
     program in this directory should contain a tell() function, by
@@ -81,5 +91,6 @@ def tell():                     # Example of a tell() function ...
     def whatFunc(layout): # Functions can be module level or local, etc
         return None
     return (someFunc, whatFunc)
+
 # For user functions, pypeVue provides one argument, a layout.
 def someFunc(layout): return otherstuff(layout, 4, 3)

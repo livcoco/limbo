@@ -20,8 +20,10 @@ from pypevue.pypePlugins.baseFuncs import addEdges
 Vfreq = 1     # Arbitrary initial value for global Vfreq
 
 class IcosaGeoPoint(Point):
-    def __init__(self, x, y, z, rank = None, face = None, step = None, stepInRank = None, num=None, nnbrs = None, dupl = None):
+    facess = [(1,2,3,4,5), (6,7,8,9,10,11,12,13,14,15), (16,17,18,19,20)]
+    def __init__(self, x, y, z, freq, rank = None, face = None, step = None, stepInRank = None, num=None, nnbrs = None, dupl = None):
         super().__init__(x,y,z)
+        self.freq = freq
         self.rank = rank
         self.face = face
         self.step = step
@@ -29,7 +31,29 @@ class IcosaGeoPoint(Point):
         self.num = num
         self.nnbrs = nnbrs #the number of struts connected to this node
         self.dupl = dupl
-        
+
+    @property
+    def stepsInRank(self):
+        if self.rank <= self.freq:
+            steps = self.rank * 5
+        elif self.rank <= 2 * self.freq:
+            steps = self.freq * 5
+        else:
+            steps = (self.freq - (self.rank - self.freq * 2)) * 5
+        return steps
+
+    @property
+    def topFaces(self):
+        return self.facess[0]
+    @property
+    def midFaces(self):
+        return self.facess[1]
+    @property
+    def bottomFaces(self):
+        return self.facess[2]
+    @property
+    def botFaces(self):
+        return self.facess[2]
     @property
     def radius(self):
         return sqrt(self.x**2 + self.y**2 + self.z**2)
@@ -43,7 +67,7 @@ class IcosaGeoPoint(Point):
         # use p for the point of this class
         p = self
         # define the plane tangent to the sphere at p
-        pl = IcosaGeoPoint(2*p.x, 2*p.y, 2*p.z)
+        pl = Point(2*p.x, 2*p.y, 2*p.z)
         # the vector corresponding to the slope from p to q
         m = Point(q.x-p.x, q.y-p.y, q.z-p.z)
         # find the angle between the line and the plane
@@ -97,7 +121,7 @@ class IcosaGeoPoint(Point):
 
         # we need to remove the effects of the nutation angle on the precession angle
         # define the plane tangent to the sphere at p
-        plts = IcosaGeoPoint(2*p.x, 2*p.y, 2*p.z) # plane of tangent sphere
+        plts = Point(2*p.x, 2*p.y, 2*p.z) # plane of tangent sphere
         pltsn = plts.norm()
         pltsNorm = Point(pltsn[0], pltsn[1], pltsn[2])
         nut = self.nutation(q)
@@ -129,9 +153,9 @@ class IcosaGeoPoint(Point):
             tv = Point(-p.y, p.x, 0) #vector in direction of tangent line
             t = Point(p.x + tv.x, p.y + tv.y, p.z) # point on the tangent line
             pl = p.cross(t)
-            pltc = IcosaGeoPoint(2*pl[0], 2*pl[1], 2*pl[2]) # plane of tangent to cicle
+            pltc = Point(2*pl[0], 2*pl[1], 2*pl[2]) # plane of tangent to cicle
             if show: print(f'  tangent vector ({tv}), points on tangent line: p ({p}), t ({t}), pltc ({pltc})')
-            
+
         angle = self.angle(pltc, m)
         aa = p.cross(pltc)
         pXpltc = Point(aa[0], aa[1], aa[2])
@@ -162,7 +186,7 @@ def genTriangleK (layout, v0, v1, v2, pn):
         y = (p*v0.y + q*v1.y + r*v2.y)/Vfreq
         z = (p*v0.z + q*v1.z + r*v2.z)/Vfreq
         t = sssq(x,y,z)         # t = distance to origin
-        layout.posts.append(IcosaGeoPoint(x/t,y/t,z/t))
+        layout.posts.append(IcosaGeoPoint(x/t,y/t,z/t, Vfreq))
         if pn-ro <= re:  addEdges(pn, pn-ro,   layout)        
         if pn-ro > rbp:  addEdges(pn, pn-ro-1, layout)        
         if pn    >  rb:  addEdges(pn, pn-1,    layout)
@@ -223,7 +247,7 @@ def dedupClip(phase, layi, layo, clip1, clip2):
     # but larger than possible floating point rounding error.
     # For example, .001 is too big to work ok at freq=36.
     eps = 0.00001
-    pprev = IcosaGeoPoint(9e9, 8e8, 7e7)
+    pprev = IcosaGeoPoint(9e9, 8e8, 7e7, Vfreq)
     for n, p in enumerate(L): p.dex = n
     L.sort(key = CCW if phase==1 else FRA2)
     transi = {} # Make node-number translation table for merged points
@@ -268,14 +292,14 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
     cornerNote = 'oip ojp ojq oiq  poi qoi qoj poj  ipo jpo jqo iqo'
     facesNote = 'aij ajf afb abe aei bfk bkl ble cdh chl clk ckg cgd dgj dji dih elh ehi fjg fgk'
     corr1 = {'o':0, 'i':1, 'j':-1, 'p':phi, 'q':-phi}    
-    corners = [IcosaGeoPoint(corr1[i], corr1[j], corr1[k]) for i,j,k in cornerNote.split()]
+    corners = [IcosaGeoPoint(corr1[i], corr1[j], corr1[k], Vfreq) for i,j,k in cornerNote.split()]
     # Rotate corners by rz, ry degrees. See:
     # https://en.wikipedia.org/wiki/Rotation_matrix#General_rotations
     DtoR = pi/180;   ry, rz = rotay*DtoR, rotaz*DtoR
     sa, ca, sb, cb = sin(rz), cos(rz), sin(ry), cos(ry)
-    rox = IcosaGeoPoint(ca*cb,  -sa,  ca*sb)
-    roy = IcosaGeoPoint(sa*cb,   ca,  sa*sb) # Set up x,y,z rows
-    roz = IcosaGeoPoint(-sb,      0,  cb)    #   of Z,Y rotation matrix
+    rox = IcosaGeoPoint(ca*cb,  -sa,  ca*sb, Vfreq)
+    roy = IcosaGeoPoint(sa*cb,   ca,  sa*sb, Vfreq) # Set up x,y,z rows
+    roz = IcosaGeoPoint(-sb,      0,  cb, Vfreq)    #   of Z,Y rotation matrix
     oa = ord('a')
     # Init empty layouts for local use (ie before deduplication)
     laylo1 = Layout(posts=[], cyls=[],  edgeList={})
@@ -284,9 +308,9 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
     for i,j,k in facesNote.split():
         pp, qq, rr = corners[ord(i)-oa], corners[ord(j)-oa], corners[ord(k)-oa]
         # Rotate each of the pp, qq, rr faces in space by Z and Y degrees
-        p = IcosaGeoPoint(rox.inner(pp), roy.inner(pp), roz.inner(pp))
-        q = IcosaGeoPoint(rox.inner(qq), roy.inner(qq), roz.inner(qq))
-        r = IcosaGeoPoint(rox.inner(rr), roy.inner(rr), roz.inner(rr))
+        p = IcosaGeoPoint(rox.inner(pp), roy.inner(pp), roz.inner(pp), Vfreq)
+        q = IcosaGeoPoint(rox.inner(qq), roy.inner(qq), roz.inner(qq), Vfreq)
+        r = IcosaGeoPoint(rox.inner(rr), roy.inner(rr), roz.inner(rr), Vfreq)
         # Now maybe triangulate this face if any of its corners are in
         # box.  (When box & face intersection is strictly inside the
         # face we mess up and don't process it.  Oh well.)
@@ -322,13 +346,13 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
         if p.rank != rank:
             rank = p.rank; faceIdx = 0; step = 0; stepInRank = 0
             if rank == 0:
-                faces = (1,2,3,4,5)
+                faces = p.topFaces
                 stepsPerFace[0] = 0
             elif rank == Vfreq * 2:
-                faces = (16,17,18,19,20)
+                faces = p.bottomFaces
                 stepsPerFace[0] = Vfreq
             elif rank == Vfreq + 1:
-                faces = (6,7,8,9,10,11,12,13,14,15)
+                faces = p.midFaces
                 stepsPerFace = [Vfreq-1,1]
             elif rank <= Vfreq:
                 stepsPerFace[0] += 1

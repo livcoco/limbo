@@ -227,16 +227,20 @@ def FRA2(p):
     sortVal = None
     if p.rank <= Vfreq: # our 0 edge is vertical
         sortVal = p.rank - atan2(p.y,p.x)/8
-    else: # our 0 edge is on a ~36deg angle
+    elif Vfreq < p.rank <= Vfreq * 2: # our 0 edge is on a ~36deg angle
         # the 33 degrees is tweaked.  nominally it should be 36,
         edgeDegrees = 33 #36 - (Vfreq / 2 - (p.rank-Vfreq)) / 4
+        #edgeDegrees = 33 + (36 - 33.0001) * (p.rank / (Vfreq * 2))
         rads = 4*pi + (atan2(p.y,p.x) + radians(edgeDegrees*(p.rank-Vfreq)/Vfreq))
+        #rads = 4*pi + (atan2(p.y,p.x) + radians(edgeDegrees)
         while rads > pi:
             rads -= 2 * pi
-        if Vfreq < p.rank <= Vfreq * 2:
-            sortVal = p.rank - rads / 8
-        else: # p.rank > Vfreq * 2
-            sortVal = p.rank + rads / 8
+        sortVal = p.rank - rads / 8
+    else: # p.rank > Vfreq * 2
+        angle = atan2(p.y, p.x) + ((2*pi) / 10.0001)
+        if angle > pi:
+            angle -= 2*pi
+        sortVal = p.rank - angle/8
     return sortVal
 
 def dedupClip(phase, layi, layo, clip1, clip2):
@@ -323,7 +327,7 @@ def genIcosahedron(layin, VfreqPar, clip1, clip2, rotay, rotaz):
             pass
     # Have done all faces.  Now dedup & clip laylo and copy points into layin
     dedupClip(1, laylo1, laylo2, clip1, clip2)
-    print (f'=  Made {len(laylo2.posts)} posts for geodesic with frequency {Vfreq}')
+    #print (f'=  Made {len(laylo2.posts)} posts for geodesic with frequency {Vfreq}')
 
     # Find ranks, or number of rows down from rank-0 center point.
     po = laylo2.posts; elo = laylo2.edgeList;  infin = Vfreq*20

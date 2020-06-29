@@ -428,6 +428,7 @@ module makeCylinders() {\n''')
         q = ref.levelAt(lev2, qq)
         dx, dy, dz = q.diff(p)
         L = round(max(0.1, sssq(dx,  dy,  dz)), 2)
+        cyl.length = L-2*gap
         cName = ref.colorSet[colo]
         alpha = gap/L
         cc = Point(p.x+alpha*dx, p.y+alpha*dy, p.z+alpha*dz)
@@ -437,7 +438,7 @@ module makeCylinders() {\n''')
         # Use min/max to avoid exception from dz/L numerical error
         yAngle = round((pi/2 - asin(min(1, max(-1, dz/L)))) * 180/pi, 2)
         zAngle = round( atan2(dy, dx)      * 180/pi, 2)
-        fout.write(f'''  oneCyl ({cyl.diam:0.3f}, {L-2*gap:0.3f}, [0, {yAngle:0.3f}, {zAngle:0.3f}], [{cc.x:0.3f}, {cc.y:0.3f}, {cc.z:0.3f}], {cName});\n''')
+        fout.write(f'''  oneCyl ({cyl.diam:0.3f}, {cyl.length:0.3f}, [0, {yAngle:0.3f}, {zAngle:0.3f}], [{cc.x:0.3f}, {cc.y:0.3f}, {cc.z:0.3f}], {cName});\n''')
 
     if startFin & 2:
         fout.write('}\n')           # close the module

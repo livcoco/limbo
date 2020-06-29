@@ -125,7 +125,7 @@ class Cylinder:
     def __init__(self, post1, post2, lev1, lev2, colo, thix, gap, data=0, num=0):
         diam = FunctionList.thickLet(thix)
         self.put9 (post1, post2, lev1, lev2, colo, diam, gap, data, num)
-        
+        self.length = None #added by writeCylinders() in baseFuncs.py
     def get9(self):
         return self.post1, self.post2, self.lev1, self.lev2, self.colo, self.diam, self.gap, self.data, self.num
     
@@ -231,8 +231,3 @@ if __name__ == '__main__':
         fout.write(ref.backCode)
     t1 = time.time()-t0
     print (f'For script "{ref.f}", pypeVue wrote code to {ref.scadFile} at {ref.date} in {t1:0.3f} seconds')
-
-'''
-failing examples
-eg-fatpost-redstar, eg-arith-test
-'''

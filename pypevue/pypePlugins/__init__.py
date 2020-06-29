@@ -62,7 +62,7 @@ class FunctionList:
                         ref.loaded.append(pfi)
                     except AttributeError:
                         print (f"Calling `tell` for {pfi} failed")
-            print (f"Registrar got functions from {', '.join(ref.loaded)}")
+            #print (f"Registrar got functions from {', '.join(ref.loaded)}")
 
         # Set class variables for all plugin functions
         ref.uNames = sorted(ref.uDict.keys())

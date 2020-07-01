@@ -224,23 +224,25 @@ def CCW(p):    # Sort points by descending z and clockwise about z
 # starting a new rank on an icosahedron edge.  Note: this only works
 # with zAngle == 0, so should probably remove the rotation option
 def FRA2(p):
-    sortVal = None
-    if p.rank <= Vfreq: # our 0 edge is vertical
-        sortVal = p.rank - atan2(p.y,p.x)/8
-    elif Vfreq < p.rank <= Vfreq * 2: # our 0 edge is on a ~36deg angle
-        # the 33 degrees is tweaked.  nominally it should be 36,
-        edgeDegrees = 33 #36 - (Vfreq / 2 - (p.rank-Vfreq)) / 4
-        #edgeDegrees = 33 + (36 - 33.0001) * (p.rank / (Vfreq * 2))
-        rads = 4*pi + (atan2(p.y,p.x) + radians(edgeDegrees*(p.rank-Vfreq)/Vfreq))
-        #rads = 4*pi + (atan2(p.y,p.x) + radians(edgeDegrees)
-        while rads > pi:
-            rads -= 2 * pi
-        sortVal = p.rank - rads / 8
-    else: # p.rank > Vfreq * 2
-        angle = atan2(p.y, p.x) + ((2*pi) / 10.0001)
-        if angle > pi:
-            angle -= 2*pi
-        sortVal = p.rank - angle/8
+    angle = atan2(p.y,p.x) #angle from -pi to +pi (-180deg to 180deg)
+    # our vertical edge 0 point is at 180 degrees.  If a rounding error occurs, this could
+    # become -180 degrees.  Adjust the value to make sure this does not happen
+    tweak = (2*pi) / (Vfreq * 5) / 4
+    angle -= tweak
+    if angle < -pi:
+        angle += 2*pi
+    if Vfreq < p.rank <= Vfreq * 2: # our 0 edge is on a ~36deg angle
+        # each segment makes an approximate angle of 360 / number of segments around the dome
+        # each rank has a number of segments offset from the center, e.g. 0.5, 1, 1.5, 2, ...
+        segAngle = 2*pi / (Vfreq * 5)
+        segsOffset = ((p.rank - Vfreq) / 2)
+        angle += segAngle * segsOffset
+    elif p.rank > Vfreq * 2:
+        # the center line is offset by half a pentagon segment (360/10)
+        angle += (2*pi) / 10
+    if angle > pi:
+        angle -= 2*pi
+    sortVal = p.rank - angle/8
     return sortVal
 
 def dedupClip(phase, layi, layo, clip1, clip2):

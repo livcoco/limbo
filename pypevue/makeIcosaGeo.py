@@ -71,7 +71,7 @@ class IcosaGeoPoint(Point):
         # the vector corresponding to the slope from p to q
         m = Point(q.x-p.x, q.y-p.y, q.z-p.z)
         # find the angle between the line and the plane
-        angle = self.angle(pl, m)
+        angle = self._angle(pl, m)
 
         # determine if q is below or above the plane so we know the sign(+-) of the angle
         # https://math.stackexchange.com/questions/7931/point-below-a-plane
@@ -81,9 +81,9 @@ class IcosaGeoPoint(Point):
         plInnerQP = pl.inner(qpDiff)
         if plInnerQP < 0:
             angle = -angle
-        return angle
+        return degrees(angle)
 
-    def angle(self, plane, lineSlope):
+    def _angle(self, plane, lineSlope):
         '''
         return the angle (in radians) between a plane and a 3D line defined by it slope
         https://www.superprof.co.uk/resources/academic/maths/analytical-geometry/distance/angle-between-line-and-plane.html 
@@ -124,7 +124,7 @@ class IcosaGeoPoint(Point):
         plts = Point(2*p.x, 2*p.y, 2*p.z) # plane of tangent sphere
         pltsn = plts.norm()
         pltsNorm = Point(pltsn[0], pltsn[1], pltsn[2])
-        nut = self.nutation(q)
+        nut = radians(self.nutation(q))
 
         #find the component of q-p perpendicular to the tangent plane of the sphere at p
         qMp = q.diff(p)
@@ -139,7 +139,7 @@ class IcosaGeoPoint(Point):
         if show:
             aa = p.add(qMpMpqPerp)
             qProj = Point(aa[0], aa[1], aa[2])
-            nutCheck = self.nutation(qProj)
+            nutCheck = radians(self.nutation(qProj))
             print(f'  plts ({plts}), pltsNorm ({pltsNorm}), nutation {degrees(nut):1.2f}deg, qMp ({qMp}), qMpMag {qMpMag:1.2f}, pltsMag = {pltsMag:1.2f}, pqPerp = ({pqPerp}), qMpMpqPerp = ({qMpMpqPerp}), qProj ({qProj}),  nutCheck {degrees(nutCheck):1.2f}deg (should be 0)')
 
         dx = 0.1
@@ -156,7 +156,7 @@ class IcosaGeoPoint(Point):
             pltc = Point(2*pl[0], 2*pl[1], 2*pl[2]) # plane of tangent to cicle
             if show: print(f'  tangent vector ({tv}), points on tangent line: p ({p}), t ({t}), pltc ({pltc})')
 
-        angle = self.angle(pltc, m)
+        angle = self._angle(pltc, m)
         aa = p.cross(pltc)
         pXpltc = Point(aa[0], aa[1], aa[2])
         if show: print(f'  raw angle {degrees(angle):1.2f}deg, pltc.inner(qProj) {pltc.inner(qProj)}, tv.inner(qProj) {tv.inner(qProj)}, pXpltc.inner(qProj) {pXpltc.inner(qProj)}')
@@ -175,7 +175,8 @@ class IcosaGeoPoint(Point):
         if angle >= 2*pi:
             angle -= 2*pi
         if show: print(f'  returning angle {degrees(angle):1.2f}deg')
-        return angle
+        return degrees(angle)
+
     def __str__(self):
         return f'num {self.num}, rank {self.rank}, face {self.face}, step {self.step}, nnbrs {self.nnbrs}, dupl {self.dupl}, coords ({self.x:1.2f}, {self.y:1.2f}, {self.z:1.2f})'
     

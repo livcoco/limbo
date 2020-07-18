@@ -71,7 +71,7 @@ class IcosaGeoPoint(Point):
         # the vector corresponding to the slope from p to q
         m = Point(q.x-p.x, q.y-p.y, q.z-p.z)
         # find the angle between the line and the plane
-        angle = self._angle(pl, m)
+        angle = self._angleLineSlopeToPlane(pl, m)
 
         # determine if q is below or above the plane so we know the sign(+-) of the angle
         # https://math.stackexchange.com/questions/7931/point-below-a-plane
@@ -83,7 +83,7 @@ class IcosaGeoPoint(Point):
             angle = -angle
         return degrees(angle)
 
-    def _angle(self, plane, lineSlope):
+    def _angleLineSlopeToPlane(self, plane, lineSlope):
         '''
         return the angle (in radians) between a plane and a 3D line defined by it slope
         https://www.superprof.co.uk/resources/academic/maths/analytical-geometry/distance/angle-between-line-and-plane.html 
@@ -108,7 +108,22 @@ class IcosaGeoPoint(Point):
         angle = asin(sinOfAngle)
         if show: print(f'  returning angle {degrees(angle):1.2f}deg')
         return angle
-        
+
+    def distanceToPlane(self, pl):
+        '''
+        return the shortest distance from myself to the plane pl
+        '''
+        pln = pl.norm()
+        plNorm = Point(pln[0], pln[1], pln[2])
+        return self.inner(plNorm)
+
+    def angle(self, q):
+        '''
+        angle between vector me and another vector q
+        '''
+        angleCos = self.inner(q) / (self.mag() * q.mag())
+        return degrees(acos(angleCos))
+    
     def precession(self, q):
         '''
         Angle from the plane created by the tangent line to the circle on the sphere at height z and the origin, 
@@ -156,7 +171,7 @@ class IcosaGeoPoint(Point):
             pltc = Point(2*pl[0], 2*pl[1], 2*pl[2]) # plane of tangent to cicle
             if show: print(f'  tangent vector ({tv}), points on tangent line: p ({p}), t ({t}), pltc ({pltc})')
 
-        angle = self._angle(pltc, m)
+        angle = self._angleLineSlopeToPlane(pltc, m)
         aa = p.cross(pltc)
         pXpltc = Point(aa[0], aa[1], aa[2])
         if show: print(f'  raw angle {degrees(angle):1.2f}deg, pltc.inner(qProj) {pltc.inner(qProj)}, tv.inner(qProj) {tv.inner(qProj)}, pXpltc.inner(qProj) {pXpltc.inner(qProj)}')

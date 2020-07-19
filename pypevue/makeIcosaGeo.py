@@ -117,6 +117,17 @@ class IcosaGeoPoint(Point):
         plNorm = Point(pln[0], pln[1], pln[2])
         return self.inner(plNorm)
 
+    def projectionOnPlane(self, pl):
+        '''
+        find the projection of this vector onto a plane
+        '''
+        pln = pl.norm()
+        plNorm = Point(pln[0], pln[1], pln[2])
+        pPerpMag = self.inner(plNorm)
+        plNorm.scale(pPerpMag)
+        pPerp = plNorm
+        return self.diff(pPerp)
+
     def angle(self, q):
         '''
         angle between vector me and another vector q
@@ -153,7 +164,7 @@ class IcosaGeoPoint(Point):
         qProj = Point(aa[0], aa[1], aa[2])
         if show:
             aa = p.add(qMpMpqPerp)
-            qProj = Point(aa[0], aa[1], aa[2])
+            qProj = Point(aa[0], aa[1], aa[2]) # PROBLEM!!!
             nutCheck = radians(self.nutation(qProj))
             print(f'  plts ({plts}), pltsNorm ({pltsNorm}), nutation {degrees(nut):1.2f}deg, qMp ({qMp}), qMpMag {qMpMag:1.2f}, pltsMag = {pltsMag:1.2f}, pqPerp = ({pqPerp}), qMpMpqPerp = ({qMpMpqPerp}), qProj ({qProj}),  nutCheck {degrees(nutCheck):1.2f}deg (should be 0)')
 
